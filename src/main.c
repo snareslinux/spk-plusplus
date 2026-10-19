@@ -18,8 +18,10 @@
 
 
 
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include "ui/ui.h"
 #include "commands/commands.h"
@@ -73,10 +75,29 @@ enum commands {
     CMD_EXTRACT,
 };
 
+static struct option long_options[] = {
+    {"help", no_argument, NULL, 'h'},
+    {"version", no_argument, NULL, 'v'},
+    {NULL, 0, NULL, 0}
+};
+
 int main(int argc, char **argv) {
     if (!argv[1]) {
-        print_version();
+        print_help();
         return 0;
+    }
+
+    int opt;
+    while ((opt = getopt_long(argc, argv, "hv", long_options, NULL)) != -1) {
+        switch (opt) {
+            case 'h':
+                print_help();
+                exit(0);
+
+            case 'v':
+                print_version();
+                exit(0);
+        }
     }
 
     ui_init();

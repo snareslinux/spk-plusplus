@@ -1,6 +1,7 @@
-FROM registry.access.redhat.com/ubi10/ubi:latest
+FROM fedora:latest
 
 RUN dnf install -y \
+        g++ \
         gcc \
         make \
         libarchive-devel \
