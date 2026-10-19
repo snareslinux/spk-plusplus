@@ -1,10 +1,10 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c17 -I./src
+CC := gcc
+CFLAGS = -Wall -Wextra -std=c17 -I./src $(shell pkg-config --cflags libarchive)
 
-CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++20 -I./src
+CXX := g++
+CXXFLAGS = -Wall -Wextra -std=c++20 -I./src $(shell pkg-config --cflags libarchive)
 
-LDLIBS = -larchive -lcurl
+LDLIBS = $(shell pkg-config --libs libarchive) -lcurl
 
 TARGET = output/spk
 
