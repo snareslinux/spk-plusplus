@@ -34,6 +34,7 @@ void print_help(void) {
     printf("List of Main Commands:\n");
     printf("    install <package> - Install package(s)\n");
     printf("    remove <package>  - Remove installed package(s)\n");
+    printf("    autoremove        - Remove all unneeded packages originally installed as dependencies.\n");
     printf("    update            - Update all repositories\n");
     printf("    upgrade           - Upgrade installed packages\n");
     printf("    search <query>    - Search for available package\n");
@@ -64,6 +65,7 @@ enum commands {
     CMD_INVALID,
     CMD_INSTALL,
     CMD_REMOVE,
+    CMD_AUTOREMOVE,
     CMD_UPDATE,
     CMD_UPGRADE,
     CMD_SEARCH,
@@ -107,6 +109,8 @@ int main(int argc, char **argv) {
         command = CMD_INSTALL;
     if (!strcmp(argv[1], "remove"))
         command = CMD_REMOVE;
+    if (!strcmp(argv[1], "autoremove"))
+        command = CMD_AUTOREMOVE;
     if (!strcmp(argv[1], "update"))
         command = CMD_UPDATE;
     if (!strcmp(argv[1], "upgrade"))
@@ -138,6 +142,11 @@ int main(int argc, char **argv) {
 
         case CMD_REMOVE: {
             remove_spk(argc - 1, argv + 1);
+            break;
+        }
+
+        case CMD_AUTOREMOVE: {
+            autoremove(argc - 1, argv + 1);
             break;
         }
 

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "err.h"
 #include "commands/commands.h"
 #include "install.h"
 
@@ -46,5 +47,5 @@ int install_spk(int argc, char **argv) {
         }
     }
 
-    
+    return ERR_OK;
 }

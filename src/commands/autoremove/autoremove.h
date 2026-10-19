@@ -1,0 +1,1 @@
+int perform_autoremove(void);

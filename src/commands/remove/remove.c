@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "err.h"
 #include "commands/commands.h"
 #include "remove.h"
 
@@ -39,4 +40,6 @@ int remove_spk(int argc, char **argv) {
                 break;
         }
     }
+
+    return ERR_OK;
 }

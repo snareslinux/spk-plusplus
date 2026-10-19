@@ -4,5 +4,6 @@
 int setup(void);
 int install_spk(int argc, char **argv);
 int remove_spk(int argc, char **argv);
+int autoremove(int argc, char **argv);
 
 #endif

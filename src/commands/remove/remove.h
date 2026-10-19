@@ -2,7 +2,7 @@
 extern "C" {
 #endif
 
-int perform_remove(const char *package_dir);
+int perform_remove(const char *pkgdir, const char *target);
 
 #ifdef __cplusplus
 }
