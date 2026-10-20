@@ -51,3 +51,10 @@ extern "C" bool ui_confirm(bool assume_yes, bool def, const char *fmt, ...) {
     va_end(args);
     return res;
 }
+
+extern "C" void ui_message(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    ui.vmessage(fmt, args);
+    va_end(args);
+}

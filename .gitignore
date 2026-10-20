@@ -4,5 +4,7 @@ test_out/
 src/*.o
 src/*/*.o 
 src/*/*/*.o 
+src/*/*/*/*.o 
 out.txt
 livefetch/
+*.spk

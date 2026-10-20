@@ -4,6 +4,7 @@
 
 #include "err.h"
 #include "path.h"
+#include "commands/autoremove/autoremove.h"
 
 int perform_autoremove(void) {
     std::filesystem::path unowned_path = PATHDIR_INSTALLED_PKGS;

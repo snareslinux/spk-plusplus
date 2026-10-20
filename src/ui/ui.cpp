@@ -69,6 +69,13 @@ bool UI::confirm(bool assume_yes, bool def, const char *fmt, ...) {
     return res;
 }
 
+void UI::message(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vmessage(fmt, args);
+    va_end(args);
+}
+
 bool UI::valid_task(int task) {
     return (
         task >= 0 &&
@@ -207,6 +214,18 @@ bool UI::vconfirm(bool assume_yes, bool def, const char *fmt, va_list args) {
     std::lock_guard lock(mutex);
     paused = false;
     return res;
+}
+
+void UI::vmessage(const char *fmt, va_list args) {
+    char message[256];
+    std::vsnprintf(message, sizeof(message), fmt, args);
+
+    std::lock_guard lock(mutex);
+
+    ansi.moveup(writable_lines);
+    writable_lines = 0;
+
+    std::cout << message << std::endl << std::flush;
 }
 
 void UI::init(void) {

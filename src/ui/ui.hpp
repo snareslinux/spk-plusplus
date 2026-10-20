@@ -39,6 +39,8 @@ class UI {
         void update_bar(int bar, int progress, const char *fmt, ...);
 
         bool confirm(bool assume_yes, bool default_value, const char *fmt, ...);
+
+        void message(const char *fmt, ...);
     
         int vcreate_task(const char *fmt, va_list args);
         void vupdate_task(int task, const char *fmt, va_list args);
@@ -48,6 +50,8 @@ class UI {
         void vupdate_bar(int bar, int progress, const char *fmt, va_list args);
 
         bool vconfirm(bool assume_yes, bool def, const char *fmt, va_list args);
+
+        void vmessage(const char *fmt, va_list args);
 
     private:
         bool valid_task(int task);

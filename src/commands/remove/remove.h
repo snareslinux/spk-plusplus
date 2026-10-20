@@ -1,9 +1,6 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef REMOVE_H
+#define REMOVE_H
 
 int perform_remove(const char *pkgdir, const char *target);
 
-#ifdef __cplusplus
-}
 #endif

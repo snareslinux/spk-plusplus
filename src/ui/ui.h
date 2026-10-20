@@ -18,6 +18,7 @@ void ui_update_bar(int bar, int progress, const char *fmt, ...);
 
 bool ui_confirm(bool assume_yes, bool def, const char *fmt, ...);
 
+void ui_message(const char *fmt, ...);
 
 #ifdef __cplusplus
 }
