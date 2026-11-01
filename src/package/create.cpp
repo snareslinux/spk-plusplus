@@ -7,8 +7,8 @@
 #include "ui/ui.hpp"
 #include "tar/tar.h"
 #include "util/util.h"
+#include "package/package.h"
 #include "spk.h"
-#include "package.h"
 
 void copy_value(char *dest, size_t size, const std::string &str) {
     std::string value = str.substr(str.find('=') + 1);

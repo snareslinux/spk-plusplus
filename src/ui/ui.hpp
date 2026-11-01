@@ -5,7 +5,7 @@
 #include <thread>
 #include <mutex>
 
-#include "ui.h"
+#include "ui/ui.h"
 
 #ifndef UI_HPP
 #define UI_HPP

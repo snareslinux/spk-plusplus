@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include "../../util/util.h"
-#include "../../path.h"
-#include "../commands.h"
+#include "util/util.h"
+#include "path.h"
+#include "commands/commands.h"
 
 int setup(void) {
     if (mkdir_p("/etc/spk", 0755) != 0) {

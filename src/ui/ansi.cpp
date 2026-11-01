@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "ui.hpp"
+#include "ui/ui.hpp"
 
 ANSI ansi;
 

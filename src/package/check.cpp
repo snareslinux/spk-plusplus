@@ -1,7 +1,7 @@
 #include <cstdio>
 
 #include "spk.h"
-#include "package.h"
+#include "package/package.h"
 
 bool check_spk_f(FILE *spk) {
     struct spk_header header;

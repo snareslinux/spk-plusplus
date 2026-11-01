@@ -1,6 +1,6 @@
 #include <string>
 
-#include "helper.hpp"
+#include "ui/helper.hpp"
 
 char get_next_spin(char curr) {
     switch (curr) {

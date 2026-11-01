@@ -2,7 +2,7 @@
 #include <fstream>
 
 #include "spk.h"
-#include "package.h"
+#include "package/package.h"
 
 int get_metadata(const char *path, struct metadata *out) {
     std::filesystem::path spkpath = path;

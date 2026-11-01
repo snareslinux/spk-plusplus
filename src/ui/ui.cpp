@@ -10,9 +10,9 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include "ui.h"
-#include "ui.hpp"
-#include "helper.hpp"
+#include "ui/ui.h"
+#include "ui/ui.hpp"
+#include "ui/helper.hpp"
 
 UI ui;
 

@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
 
-#include "../util/util.h"
+#include "util/util.h"
 
 #include <stdio.h>
 #include <stdint.h>

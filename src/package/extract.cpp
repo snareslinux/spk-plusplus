@@ -4,9 +4,9 @@
 
 #include "ui/ui.hpp"
 #include "util/util.h"
-#include "spk.h"
 #include "tar/tar.h"
-#include "package.h"
+#include "package/package.h"
+#include "spk.h"
 
 int extract_spk(const char *spkpath, const char *extract_root, const char *logpath) {
     if (!check_spk_path(spkpath)) {

@@ -1,7 +1,7 @@
 #include <cstdarg>
 
-#include "ui.h"
-#include "ui.hpp"
+#include "ui/ui.h"
+#include "ui/ui.hpp"
 
 extern "C" void ui_init(void) {
     ui.init();
