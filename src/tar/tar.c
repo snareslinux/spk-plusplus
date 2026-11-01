@@ -132,7 +132,6 @@ int extract_archive(const void *archive_mem, size_t mem_len, const char *destpat
         | ARCHIVE_EXTRACT_SECURE_SYMLINKS
         | ARCHIVE_EXTRACT_TIME
         | ARCHIVE_EXTRACT_PERM
-        | ARCHIVE_EXTRACT_UNLINK
     );
 
     if (archive_read_open_memory(a_read, archive_mem, mem_len) != ARCHIVE_OK) {
@@ -145,7 +144,7 @@ int extract_archive(const void *archive_mem, size_t mem_len, const char *destpat
 
     while ((res = archive_read_next_header(a_read, &entry)) == ARCHIVE_OK) {
 
-        char new_path[PATH_MAX];
+        char new_path[PATH_MAX * 2];
         snprintf(new_path, sizeof(new_path), "%s/%s", outpath, archive_entry_pathname(entry));
 
         struct stat st;
