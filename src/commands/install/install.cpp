@@ -14,11 +14,13 @@
 #include "ui/ui.hpp"
 #include "path.h"
 
+int perform_install(InsPackage package, std::string workdir);
+
 int install_packages(int argc, char **argv, bool assume_yes) {
-    std::vector<Package> packages;
+    std::vector<InsPackage> packages;
     
     for (int i = 0; i < argc; i++) {
-        Package tmp;
+        InsPackage tmp;
         if (get_package_data(argv[i], &tmp) == ERR_OK) {
             packages.push_back(tmp);   
         } else {
@@ -29,35 +31,36 @@ int install_packages(int argc, char **argv, bool assume_yes) {
     std::filesystem::path workdir = std::filesystem::temp_directory_path() / "spkinstallation";
     std::filesystem::create_directories(workdir);
 
-    InstallPlan plan = resolve(packages);
+    InstallPlan plan = ins_resolve(packages);
 
     ui.message("Package and Dependencies:");
-    for (int i = 0; i < plan.packages.size(); i++) {
-        ui.message("    %s-%s", plan.packages[i].name.c_str(), plan.packages[i].version.c_str());
+    for (const auto &package : plan.packages) {
+        ui.message("    %s-%s", package.name.c_str(), package.version.c_str());
     }
 
     if (!ui.confirm(assume_yes, false, "Do you wish to install these %d packages", (int)plan.packages.size())) {
         return ERR_OK;
     }
 
-    for (int i = 0; i < plan.packages.size(); i++) {
-        if (plan.packages[i].local) {
+    for (const auto &package : plan.packages) {
+        if (package.local) {
             // MOVE FILE INTO DIR
-            std::filesystem::copy(plan.packages[i].source, workdir / plan.packages[i].name);
+            std::filesystem::copy(package.source, workdir / package.name);
         } else {
             // DOWNLOAD FILE INTO DIR
-            FILE *dest = fopen((workdir / plan.packages[i].name).c_str(), "wb");
+            FILE *dest = std::fopen((workdir / package.name).c_str(), "wb");
             if (!dest) {
                 return ERR_EXIT;
             }
-            download_to_file(plan.packages[i].source.c_str(), dest);
+            download_to_file(package.source.c_str(), dest);
+            std::fclose(dest);
         }
     }
 
-    for (int i = 0; i < plan.packages.size(); i++) {
-        switch (perform_install((workdir / plan.packages[i].name).c_str())) {
+    for (const auto &package : plan.packages) {
+        switch (perform_install(package, workdir)) {
             case ERR_RETRY: {
-                if (perform_install((workdir / plan.packages[i].name).c_str()) != ERR_OK) {
+                if (perform_install(package, workdir) != ERR_OK) {
                     return ERR_EXIT;
                 }
                 break;
@@ -76,20 +79,51 @@ int install_packages(int argc, char **argv, bool assume_yes) {
     return ERR_OK;
 }
 
-int perform_install(const char *spkpath) {
+int perform_install(InsPackage package, std::string workdir) {
+    std::filesystem::path spkpath(workdir);
+    spkpath /= package.name;
     std::ifstream spk(spkpath, std::ios::binary);
     if (!spk) {
         return ERR_EXIT;
     }
 
-    struct metadata metadata;
-    get_metadata(spkpath, &metadata);
-
     std::filesystem::path install_dir = PATHDIR_INSTALLED_PKGS;
-    std::filesystem::path package_dir = install_dir / metadata.name;
+    std::filesystem::path package_dir = install_dir / package.name;
+
+    if (std::filesystem::exists(package_dir / "package.metadata")) return ERR_EXIT;
+
     std::filesystem::create_directories(package_dir);
 
-    if (extract_spk(spkpath, "/", (package_dir / "install.journal").c_str()) != 0) {
+        // WRITE PACKAGE INFO
+    std::ofstream metadataf(package_dir / "package.metadata");
+    if (!metadataf) {
+        perform_remove(package_dir.c_str(), "package.files");
+        return ERR_RETRY;
+    }
+
+    metadataf << "version=" << package.version << std::endl;
+
+    metadataf << "dependencies=";
+    for (const auto &dependency : package.dependencies) {
+        metadataf << dependency << ",";
+    }
+    metadataf << std::endl;
+
+    metadataf << "dependents=";
+    for (const auto &dependent : package.dependents) {
+        metadataf << dependent << ",";
+    }
+    metadataf << std::endl;
+
+    metadataf << "reason=";
+    if (package.is_dependency) {
+        metadataf << "dependency";
+    } else {
+        metadataf << "explicit";
+    }
+    metadataf << std::endl;
+
+    if (extract_spk(spkpath.c_str(), "/", (package_dir / "install.journal").c_str()) != 0) {
         // REMOVE PACKAGE
         // MAY PERFORM RETRY DEPENDING ON ERROR
         perform_remove(package_dir.c_str(), "install.journal");
@@ -97,13 +131,6 @@ int perform_install(const char *spkpath) {
     } else {
         // SET JOURNAL AS INSTALL LIST
         std::filesystem::rename(package_dir / "install.journal", package_dir / "package.files");
-    }
-
-    // WRITE PACKAGE INFO
-    std::ofstream metadataf(package_dir / "package.metadata");
-    if (!metadataf) {
-        perform_remove(package_dir.c_str(), "package.metadata");
-        return ERR_RETRY;
     }
 
     return ERR_OK;

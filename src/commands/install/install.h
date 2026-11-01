@@ -8,7 +8,6 @@ extern "C" {
 #endif
 
 int install_packages(int argc, char **argv, bool assume_yes);
-int perform_install(const char *spkpath);
 
 #ifdef __cplusplus
 }

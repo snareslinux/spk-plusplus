@@ -8,8 +8,12 @@
 #include "commands/install/install.h"
 #include "commands/install/resolve.hpp"
 
-int get_package_data(std::string name, Package *out) {
-    Package newpkg;
+int get_package_data(std::string name, InsPackage *out) {
+    if (name.find_first_of("/") != std::string::npos) {
+        return ERR_EXIT;
+    }
+    
+    InsPackage newpkg;
 
     if (std::filesystem::exists(name)) {
         // LOCAL FILE
@@ -19,6 +23,7 @@ int get_package_data(std::string name, Package *out) {
             return ERR_EXIT;
         }
         newpkg.local = true;
+        newpkg.is_dependency = false;
         newpkg.name = metadata.name;
         newpkg.version = metadata.version;
         newpkg.source = name;

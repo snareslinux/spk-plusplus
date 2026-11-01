@@ -1,9 +1,9 @@
 #include "commands/install/resolve.hpp"
 
-InstallPlan resolve(std::vector<Package> requested) {
+InstallPlan ins_resolve(std::vector<InsPackage> requested) {
     InstallPlan newplan;
-    for (int i = 0; i < requested.size(); i++) {
-        newplan.packages.push_back(requested[i]);
-    }
+    
+    newplan.packages = requested;
+
     return newplan;
 }

@@ -5,8 +5,13 @@
 #include "err.h"
 #include "path.h"
 #include "commands/autoremove/autoremove.h"
+#include "ui/ui.hpp"
 
-int perform_autoremove(void) {
+int perform_autoremove(bool assume_yes) {
+    if (!ui.confirm(assume_yes, false, "Do you wish to perform a auto remove")) {
+        return ERR_OK;
+    }
+
     std::filesystem::path unowned_path = PATHDIR_INSTALLED_PKGS;
     unowned_path /= "unowned";
     unowned_path /= "unowned.files";
@@ -19,8 +24,7 @@ int perform_autoremove(void) {
     std::ofstream temp(temp_path);
     
     if (unowned && temp) {
-        while (!unowned.eof()) {
-            std::getline(unowned, line, '\n');
+        while (std::getline(unowned, line, '\n')) {
             if (std::filesystem::is_empty(line)) {
                 std::filesystem::remove(line);
             } else {
@@ -30,8 +34,9 @@ int perform_autoremove(void) {
     }
     
     unowned.close();
-    std::filesystem::remove(unowned_path);
-    std::filesystem::rename(temp_path, unowned_path);
+    temp.close();
+    std::filesystem::copy(temp_path, unowned_path);
+    std::filesystem::remove(temp_path);
     
     return ERR_OK;
 }

@@ -4,7 +4,7 @@
 
 #include "err.h"
 #include "commands/commands.h"
-#include "remove.h"
+#include "commands/remove/remove.h"
 
 static struct option long_options[] = {
     {"help", no_argument, NULL, 'h'},
@@ -27,6 +27,8 @@ void print_remove_help(void) {
 int remove_spk(int argc, char **argv) {
     int opt;
 
+    bool assume_yes = false;
+
     while ((opt = getopt_long(argc, argv, "hfy", long_options, NULL)) != -1) {
         switch (opt) {
             case 'h':
@@ -37,9 +39,15 @@ int remove_spk(int argc, char **argv) {
                 break;
 
             case 'y':
+                assume_yes = true;
                 break;
         }
     }
 
-    return ERR_OK;
+    if (optind >= argc) {
+        print_remove_help();
+        return ERR_EXIT;
+    }
+
+    return remove_packages(argc - optind, argv + optind, assume_yes);
 }
