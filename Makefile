@@ -1,8 +1,8 @@
 CC := gcc
-CFLAGS = -Wall -Wextra -std=c17 -I./src $(shell pkg-config --cflags libarchive)
+CFLAGS = -Wall -Wextra -std=c23 -I./src $(shell pkg-config --cflags libarchive)
 
 CXX := g++
-CXXFLAGS = -Wall -Wextra -std=c++20 -I./src $(shell pkg-config --cflags libarchive)
+CXXFLAGS = -Wall -Wextra -std=c++23 -I./src $(shell pkg-config --cflags libarchive)
 
 LDLIBS = $(shell pkg-config --libs libarchive) -lcurl
 
