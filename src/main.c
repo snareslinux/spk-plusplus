@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     }
 
     int opt;
-    while ((opt = getopt_long(argc, argv, "hv", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "+hv", long_options, NULL)) != -1) {
         switch (opt) {
             case 'h':
                 print_help();
@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
 
         case CMD_EXTRACT: {
             if (argv[2] && argv[3]) {
-                int res = extract_spk(argv[2], argv[3], NULL);
+                extract_spk(argv[2], argv[3], NULL);
             }
             
             break;
