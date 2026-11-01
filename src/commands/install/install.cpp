@@ -74,6 +74,12 @@ int install_packages(int argc, char **argv, bool assume_yes) {
             default:
                 break;
         }
+
+        for (const auto &dependency : package.dependencies) {
+            if (add_dependent_reference(dependency, package.name) != ERR_OK) {
+                return ERR_EXIT;
+            }
+        }
     }
 
     return ERR_OK;
@@ -109,11 +115,7 @@ int perform_install(InsPackage package, std::string workdir) {
     }
     metadataf << std::endl;
 
-    metadataf << "dependents=";
-    for (const auto &dependent : package.dependents) {
-        metadataf << dependent << ",";
-    }
-    metadataf << std::endl;
+    metadataf << "dependents=" << std::endl;
 
     metadataf << "reason=";
     if (package.is_dependency) {

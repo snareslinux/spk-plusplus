@@ -15,6 +15,7 @@ struct InsPackage {
 };
 
 int get_package_data(std::string name, InsPackage *out);
+int add_dependent_reference(std::string dependency, std::string dependent);
 
 struct InstallPlan {
     std::vector<InsPackage> packages;
