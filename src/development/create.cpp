@@ -39,7 +39,10 @@ int create_spk(const char *srcdir) {
         if (entry.compare(0, 8, "version=") == 0) {
             copy_value(metadata.version, sizeof(metadata.version), entry);
         }
-        if (entry.compare(0, 8, "depends=") == 0) {
+        if (entry.compare(0, 13, "architecture=") == 0) {
+            copy_value(metadata.arch, sizeof(metadata.arch), entry);
+        }
+        if (entry.compare(0, 13, "dependencies=") == 0) {
             copy_value(metadata.dependencies, sizeof(metadata.dependencies), entry);
         }
     }

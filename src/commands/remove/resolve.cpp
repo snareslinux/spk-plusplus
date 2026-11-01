@@ -34,6 +34,7 @@ RemovePlan rem_resolve(std::vector<RemPackage> requested) {
 
     std::error_code ec;
 
+    // TURN ALL PACKAGES TO A STRUCT IN MEMORY
     for (const auto &entry : std::filesystem::directory_iterator(pkgdir, ec)) {
         if (ec) {
             plan.error = true;
@@ -75,6 +76,7 @@ RemovePlan rem_resolve(std::vector<RemPackage> requested) {
 
     std::vector<std::string> removal;
 
+    // ENSURE REQUESTED EXISTS AND NO DUPLICATES
     for (const auto &package : requested) {
         if (!find_package(installed, package.name)) {
             plan.error = true;
@@ -86,8 +88,9 @@ RemovePlan rem_resolve(std::vector<RemPackage> requested) {
         }
     }
 
-    for (size_t i = 0; i < removal.size(); i++) {
-        RemPackage *package = find_package(installed, removal[i]);
+    // ADD ALL NON EXPLICIT DEPENDENCIES FROM REMOVAL
+    for (const auto &rempkg : removal) {
+        RemPackage *package = find_package(installed, rempkg);
 
         if (!package) {
             plan.error = true;
@@ -107,8 +110,8 @@ RemovePlan rem_resolve(std::vector<RemPackage> requested) {
         }
     }
 
+    // REMOVE PACKAGES THAT CANNOT BE REMOVED UNTIL NO MORE PACKAGES ARE REMOVED FROM THE LIST
     bool changed = true;
-
     while (changed) {
         changed = false;
 
@@ -131,6 +134,7 @@ RemovePlan rem_resolve(std::vector<RemPackage> requested) {
 
             bool needed = false;
 
+            // CHECK IF PACKAGE IS NOT A DEPENDENCY OF A PROGRAM THAT WILL STAY
             for (const auto &package : installed) {
                 if (has_dependency(package, name) && !contains_name(removal, package.name)) {
                     needed = true;
@@ -138,6 +142,7 @@ RemovePlan rem_resolve(std::vector<RemPackage> requested) {
                 }
             }
 
+            // IF IT IS STILL NEEDED REMOVE FROM LIST
             if (needed) {
                 removal.erase(removal.begin() + i);
                 changed = true;
@@ -147,6 +152,7 @@ RemovePlan rem_resolve(std::vector<RemPackage> requested) {
         }
     }
 
+    // MAKE A LIST OF PACKAGES BLOCKING REMOVAL
     for (const auto &package : requested) {
         for (const auto &other : installed) {
             if (has_dependency(other, package.name) && !contains_name(removal, other.name)) {
@@ -160,8 +166,11 @@ RemovePlan rem_resolve(std::vector<RemPackage> requested) {
         return plan;
     }
 
+    // CONTINUE IF NOTHING IS BLOCKING
+
     std::vector<std::string> remaining = removal;
 
+    // LOOP THROUGH WITH CHECKS AND PUT PACKAGES INTO PLAN
     while (!remaining.empty()) {
         bool found = false;
 

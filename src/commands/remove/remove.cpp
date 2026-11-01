@@ -118,7 +118,6 @@ int perform_remove(const char *pkgdir, const char *target) {
         } else if (line[0] == 'l') {
             // SYMLINK
             bool is_symlink = std::filesystem::is_symlink(filepath, ec);
-
             if (ec) {
                 return ERR_EXIT;
             }
@@ -163,6 +162,7 @@ int perform_remove(const char *pkgdir, const char *target) {
         return ERR_EXIT;
     }
 
+    // REMOVE DIRS OR ADD TO UNOWNED
     for (const auto &dir : used_dirs) {
         std::filesystem::path path(dir);
 
@@ -202,8 +202,8 @@ int perform_remove(const char *pkgdir, const char *target) {
         return ERR_EXIT;
     }
 
+    // REMOVE PACKAGE DATA
     std::filesystem::remove_all(package_dir, ec);
-
     if (ec) {
         return ERR_EXIT;
     }

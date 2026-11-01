@@ -1,7 +1,5 @@
 #define _GNU_SOURCE
 
-#include "util/util.h"
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -11,6 +9,9 @@
 #include <sys/stat.h>
 #include <memory.h>
 #include <curl/curl.h>
+
+#include "err.h"
+#include "util/util.h"
 
 size_t copy_file(FILE *src, FILE *dest, uint64_t total) {
     char buffer[64 * 1024];
@@ -53,17 +54,17 @@ int mkdir_p(const char *dir, mode_t mode) {
         if (*p == '/') {
             *p = '\0';
             if (mkdir(tmp, mode) < 0 && errno != EEXIST) {
-                return 1;
+                return ERR_EXIT;
             }
             *p = '/';
         }
     }
 
     if (mkdir(tmp, mode) < 0 && errno != EEXIST) {
-        return 1;
+        return ERR_EXIT;
     }
 
-    return 0;
+    return ERR_OK;
 }
 
 void clean_string(char *buffer) {
@@ -91,9 +92,9 @@ int download_to_file(const char *url, FILE *file) {
         curl_easy_cleanup(curl);
 
         if (res != CURLE_OK) {
-            return 1;
+            return ERR_EXIT;
         }
     }
 
-    return 0;
+    return ERR_OK;
 }
