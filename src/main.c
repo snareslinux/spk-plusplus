@@ -166,19 +166,23 @@ int main(int argc, char **argv) {
             return ERR_EXIT;
         
         case CMD_INSTALL: {
-            return install_spk(argc - 1, argv + 1);
+            install_spk(argc - 1, argv + 1);
+            break;
         }
 
         case CMD_REMOVE: {
-            return remove_spk(argc - 1, argv + 1);
+            remove_spk(argc - 1, argv + 1);
+            break;
         }
 
         case CMD_AUTOREMOVE: {
-            return autoremove(argc - 1, argv + 1);
+            autoremove(argc - 1, argv + 1);
+            break;
         }
 
         case CMD_UPDATE: {
-            return update_repositories();
+            update_repositories();
+            break;
         }
 
         case CMD_UPGRADE: {
@@ -198,7 +202,8 @@ int main(int argc, char **argv) {
         }
 
         case CMD_SETUP: {
-            return setup();
+            setup();
+            break;
         }
 
 #ifdef CONFIG_DEVELOPMENT_TOOLS
@@ -212,7 +217,7 @@ int main(int argc, char **argv) {
 
         case CMD_EXTRACT: {
             if (argv[2] && argv[3]) {
-                return extract_spk(argv[2], argv[3], NULL);
+                extract_spk(argv[2], argv[3], NULL);
             }
 
             return ERR_EXIT;
@@ -220,7 +225,7 @@ int main(int argc, char **argv) {
 
         case CMD_WRITE_INDEX: {
             if (argv[2]) {
-                return write_index(argv[2]);
+                write_index(argv[2]);
             }
 
             return ERR_EXIT;
