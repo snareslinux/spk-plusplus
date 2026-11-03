@@ -6,32 +6,48 @@
 #include <cstdio>
 
 #include "err.h"
+#include "path.h"
+#include "ui/ui.hpp"
 #include "package/package.h"
 #include "util/util.h"
+#include "util/util.hpp"
+#include "repository/repository.hpp"
 #include "commands/remove/remove.h"
 #include "commands/install/resolve.hpp"
 #include "commands/install/install.h"
-#include "ui/ui.hpp"
-#include "path.h"
 
 int perform_install(InsPackage package, std::string workdir);
 
 int install_packages(int argc, char **argv, bool assume_yes) {
     std::vector<InsPackage> packages;
+    std::vector<RepoPackage> available;
+    if (get_available_packages(&available) != ERR_OK) {
+        return ERR_EXIT;
+    }
     
     for (int i = 0; i < argc; i++) {
         InsPackage tmp;
-        if (get_package_data(argv[i], &tmp) == ERR_OK) {
-            packages.push_back(tmp);   
-        } else {
-            
+        if (get_package_data(available, argv[i], &tmp) != ERR_OK) {
+            return ERR_EXIT;     
         }
+
+        packages.push_back(tmp); 
     }
 
     std::filesystem::path workdir = std::filesystem::temp_directory_path() / "spkinstallation";
     std::filesystem::create_directories(workdir);
+    for (const auto &entry : std::filesystem::directory_iterator(workdir)) {
+        std::error_code ec;
+        std::filesystem::remove_all(entry.path(), ec);
+        if (ec) {
+            return ERR_EXIT;
+        }
+    }
 
-    InstallPlan plan = ins_resolve(packages);
+    InstallPlan plan = ins_resolve(packages, available);
+    if (plan.error) {
+        return ERR_EXIT;
+    }
 
     ui.message("Package and Dependencies:");
     for (const auto &package : plan.packages) {
@@ -48,12 +64,21 @@ int install_packages(int argc, char **argv, bool assume_yes) {
             std::filesystem::copy(package.source, workdir / package.name);
         } else {
             // DOWNLOAD FILE INTO DIR
-            FILE *dest = std::fopen((workdir / package.name).c_str(), "wb");
+            std::filesystem::path dest_path = workdir / package.name;
+            FILE *dest = std::fopen(dest_path.c_str(), "wb");
             if (!dest) {
                 return ERR_EXIT;
             }
-            download_to_file(package.source.c_str(), dest);
+            if (download_to_file(package.source.c_str(), dest) != ERR_OK) {
+                std::fclose(dest);
+                return ERR_EXIT;
+            }
+            
             std::fclose(dest);
+
+            if (get_sha256(dest_path) != package.sha256) {
+                return ERR_EXIT;
+            }
         }
     }
 

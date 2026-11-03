@@ -31,5 +31,10 @@ int get_metadata(const char *path, struct metadata *out) {
         return ERR_EXIT;
     }
 
+    out->name[sizeof(out->name) - 1] = '\0';
+    out->version[sizeof(out->version) - 1] = '\0';
+    out->arch[sizeof(out->arch) - 1] = '\0';
+    out->dependencies[sizeof(out->dependencies) - 1] = '\0';
+
     return ERR_OK;
 }

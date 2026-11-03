@@ -17,6 +17,10 @@ int perform_autoremove(bool assume_yes) {
     unowned_path /= "unowned.files";
     
     std::ifstream unowned(unowned_path);
+    if (!unowned) {
+        return ERR_EXIT;
+    }
+    
     std::string line;
     
     std::filesystem::path temp_path(std::filesystem::temp_directory_path());
@@ -25,7 +29,12 @@ int perform_autoremove(bool assume_yes) {
     
     if (unowned && temp) {
         while (std::getline(unowned, line, '\n')) {
-            if (std::filesystem::is_empty(line)) {
+            if (line.empty()) {
+                continue;
+            }
+            
+            std::error_code ec;
+            if (std::filesystem::is_directory(line, ec) && std::filesystem::is_empty(line, ec)) {
                 std::filesystem::remove(line);
             } else {
                 temp << line << std::endl;
@@ -35,7 +44,7 @@ int perform_autoremove(bool assume_yes) {
     
     unowned.close();
     temp.close();
-    std::filesystem::copy(temp_path, unowned_path);
+    std::filesystem::copy_file(temp_path, unowned_path, std::filesystem::copy_options::overwrite_existing);
     std::filesystem::remove(temp_path);
     
     return ERR_OK;

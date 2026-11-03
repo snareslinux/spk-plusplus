@@ -96,7 +96,7 @@ int remove_dependent_reference(std::string dependency, std::string dependent) {
 
     std::vector<std::string> lines;
     std::string line;
-    bool found;
+    bool found = false;
     while (std::getline(input, line)) {
         if (!line.compare(0, 11, "dependents=")) {
             found = true;

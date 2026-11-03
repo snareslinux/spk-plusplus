@@ -17,7 +17,8 @@ struct spk_header {
 
 struct metadata {
     char name[64];
-    char version[12];
+    char version[16];
+    char arch[16];
     char dependencies[1024];
 } __attribute__((packed));
 

@@ -33,7 +33,7 @@ int remove_spk(int argc, char **argv) {
         switch (opt) {
             case 'h':
                 print_remove_help();
-                break;
+                return ERR_OK;
 
             case 'f':
                 break;

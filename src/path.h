@@ -5,8 +5,9 @@
 #define PATH_SPK_CONF "/etc/spk/spk.conf"
 
 #define PATHDIR_INSTALLED_PKGS "/var/lib/spk/installed"
+#define PATHDIR_REPO_CACHE "/var/cache/spk/repositories"
 
-#define URL_CONFIG "https://raw.githubusercontent.com/WilGulf/spk/refs/heads/master/spk.conf"
-#define URL_REPOS "https://raw.githubusercontent.com/WilGulf/spk/refs/heads/master/repos.conf"
+#define URL_CONFIG "https://raw.githubusercontent.com/snareslinux/spk-plusplus/main/spk.conf"
+#define URL_REPOS "https://raw.githubusercontent.com/snareslinux/spk-plusplus/main/repo.conf"
 
 #endif

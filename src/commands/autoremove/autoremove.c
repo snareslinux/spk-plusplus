@@ -29,7 +29,7 @@ int autoremove(int argc, char **argv) {
         switch (opt) {
             case 'h':
                 print_autoremove_help();
-                break;
+                return ERR_OK;
 
             case 'f':
                 break;

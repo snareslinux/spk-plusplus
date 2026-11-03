@@ -5,40 +5,60 @@
 #include <algorithm>
 #include <sstream>
 #include <cstring>
+#include <cstdint>
 
 #include "err.h"
 #include "path.h"
 #include "ui/ui.hpp"
+#include "util/util.hpp"
 #include "package/package.h"
+#include "repository/repository.hpp"
 #include "commands/install/install.h"
 #include "commands/install/resolve.hpp"
 
-int get_package_data(std::string name, InsPackage *out) {
-    if (name.find_first_of("/") != std::string::npos) {
-        return ERR_EXIT;
-    }
-    
-    InsPackage newpkg;
+int get_package_data(std::vector<RepoPackage> &available, std::string name, InsPackage *out) {
+    InsPackage newpkg {};
 
-    if (std::filesystem::exists(name)) {
+    if (name.find(".spk") != std::string::npos) {
         // LOCAL FILE
         struct metadata metadata;
         std::memset(&metadata, 0, sizeof(metadata));
+
         if (get_metadata(name.c_str(), &metadata) != ERR_OK) {
             return ERR_EXIT;
         }
+
         newpkg.local = true;
         newpkg.is_dependency = false;
         newpkg.name = metadata.name;
         newpkg.version = metadata.version;
         newpkg.source = name;
+        newpkg.sha256 = "";
+
         std::stringstream depstream(metadata.dependencies);
         std::string pkg;
         while (std::getline(depstream, pkg, ',')) {
-            newpkg.dependencies.push_back(pkg);
+            if (!pkg.empty()) {
+                newpkg.dependencies.push_back(pkg);
+            }
         }
     } else {
         // SEARCH REPO
+        newpkg.local = false;
+        newpkg.is_dependency = false;
+        RepoPackage available_package;
+        if (find_package(available, name, &available_package) != ERR_OK) {
+            return ERR_EXIT;
+        }
+
+        newpkg.name = available_package.name;
+        newpkg.version = available_package.version;
+        newpkg.dependencies = available_package.dependencies;
+        newpkg.sha256 = available_package.sha256;
+
+        std::string url = available_package.repository_location;
+        url += get_architecture() + "/packages/" + available_package.filename;
+        newpkg.source = url;
     }
 
     *out = std::move(newpkg);
@@ -119,5 +139,24 @@ int add_dependent_reference(std::string dependency, std::string dependent) {
         return ERR_EXIT;
     }
 
+    return ERR_OK;
+}
+
+int get_installed_packages(std::vector<std::string> *out) {
+    std::error_code ec;
+    for (const auto &entry : std::filesystem::directory_iterator(PATHDIR_INSTALLED_PKGS, ec)) {
+        if (ec) {
+            return ERR_EXIT;
+        }
+
+        if (entry.exists() && entry.is_directory()) {
+            if (std::filesystem::exists(entry.path() / "package.metadata")) {
+                out->push_back(entry.path().filename());
+            } else {
+                continue;
+            }
+        }
+    }
+    
     return ERR_OK;
 }

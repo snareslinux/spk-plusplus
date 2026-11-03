@@ -14,6 +14,8 @@
     #define ARCH "RISC-V"
 #elif defined(__powerpc__)
     #define ARCH "PowerPC"
+#else
+    #define ARCH "Unknown"
 #endif
 
 
@@ -22,16 +24,34 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <stdio.h>
+#include <stdbool.h>
 
 #include "ui/ui.h"
 #include "commands/commands.h"
 #include "package/package.h"
+#include "repository/repository.h"
 
 void print_help(void) {
     putchar('\n');
     printf("Usage: spk COMMAND [options]\n");
     putchar('\n');
     printf("List of Main Commands:\n");
+    #ifdef CONFIG_DEVELOPMENT_TOOLS
+    printf("    install <package>             - Install package(s)\n");
+    printf("    remove <package>              - Remove installed package(s)\n");
+    printf("    autoremove                    - Remove all unneeded packages originally installed as dependencies.\n");
+    printf("    update                        - Update all repositories\n");
+    printf("    upgrade                       - Upgrade installed packages\n");
+    printf("    search <query>                - Search for available package\n");
+    printf("    info <package>                - Show package information\n");
+    printf("    list                          - List installed packages\n");
+    printf("    inspect <package>             - List files installed by package\n");
+    printf("    setup                         - Setup spk for this system\n");
+    printf("    extract <package> <root path> - Extracts a spk file into root\n");
+    printf("    create <directory>            - Creates a spk file from the directories content\n");
+    printf("    write-index <directory>       - Creates a index file for the repository in the directory\n");
+    #else
     printf("    install <package> - Install package(s)\n");
     printf("    remove <package>  - Remove installed package(s)\n");
     printf("    autoremove        - Remove all unneeded packages originally installed as dependencies.\n");
@@ -42,6 +62,7 @@ void print_help(void) {
     printf("    list              - List installed packages\n");
     printf("    inspect <package> - List files installed by package\n");
     printf("    setup             - Setup spk for this system\n");
+    #endif
     putchar('\n');
     printf("General spk options:\n");
     printf("    -v, --version   Print spk version\n");
@@ -73,8 +94,11 @@ enum commands {
     CMD_LIST,
     CMD_INSPECT,
     CMD_SETUP,
+#ifdef CONFIG_DEVELOPMENT_TOOLS
     CMD_CREATE,
     CMD_EXTRACT,
+    CMD_WRITE_INDEX,
+#endif
 };
 
 static struct option long_options[] = {
@@ -125,10 +149,15 @@ int main(int argc, char **argv) {
         command = CMD_INSPECT;
     if (!strcmp(argv[1], "setup"))
         command = CMD_SETUP;
+
+#ifdef CONFIG_DEVELOPMENT_TOOLS
     if (!strcmp(argv[1], "create"))
         command = CMD_CREATE;
     if (!strcmp(argv[1], "extract"))
         command = CMD_EXTRACT;
+    if (!strcmp(argv[1], "write-index"))
+        command = CMD_WRITE_INDEX;
+#endif
 
     switch (command) {
         case CMD_INVALID:
@@ -151,6 +180,7 @@ int main(int argc, char **argv) {
         }
 
         case CMD_UPDATE: {
+            update_repositories();
             break;
         }
 
@@ -175,6 +205,7 @@ int main(int argc, char **argv) {
             break;
         }
 
+#ifdef CONFIG_DEVELOPMENT_TOOLS
         case CMD_CREATE: {
             if (argv[2])
                 create_spk(argv[2]);
@@ -188,6 +219,15 @@ int main(int argc, char **argv) {
             
             break;
         }
+
+        case CMD_WRITE_INDEX: {
+            if (argv[2]) {
+                write_index(argv[2]);
+            }
+
+            break;
+        }
+#endif
 
         default:
             print_help();

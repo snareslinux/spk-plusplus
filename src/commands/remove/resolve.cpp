@@ -89,8 +89,8 @@ RemovePlan rem_resolve(std::vector<RemPackage> requested) {
     }
 
     // ADD ALL NON EXPLICIT DEPENDENCIES FROM REMOVAL
-    for (const auto &rempkg : removal) {
-        RemPackage *package = find_package(installed, rempkg);
+    for (size_t i = 0; i < removal.size(); i++) {
+        RemPackage *package = find_package(installed, removal[i]);
 
         if (!package) {
             plan.error = true;
