@@ -162,26 +162,22 @@ int main(int argc, char **argv) {
     switch (command) {
         case CMD_INVALID:
             print_help();
-            break;
+            return;
         
         case CMD_INSTALL: {
-            install_spk(argc - 1, argv + 1);
-            break;
+            return install_spk(argc - 1, argv + 1);
         }
 
         case CMD_REMOVE: {
-            remove_spk(argc - 1, argv + 1);
-            break;
+            return remove_spk(argc - 1, argv + 1);
         }
 
         case CMD_AUTOREMOVE: {
-            autoremove(argc - 1, argv + 1);
-            break;
+            return autoremove(argc - 1, argv + 1);
         }
 
         case CMD_UPDATE: {
-            update_repositories();
-            break;
+            return update_repositories();
         }
 
         case CMD_UPGRADE: {
@@ -201,37 +197,32 @@ int main(int argc, char **argv) {
         }
 
         case CMD_SETUP: {
-            setup();
-            break;
+            return setup();
         }
 
 #ifdef CONFIG_DEVELOPMENT_TOOLS
         case CMD_CREATE: {
-            if (argv[2])
-                create_spk(argv[2]);
-            break;
+            if (argv[2]) {
+                return create_spk(argv[2]);
+            }
         }
 
         case CMD_EXTRACT: {
             if (argv[2] && argv[3]) {
-                extract_spk(argv[2], argv[3], NULL);
+                return extract_spk(argv[2], argv[3], NULL);
             }
-            
-            break;
         }
 
         case CMD_WRITE_INDEX: {
             if (argv[2]) {
-                write_index(argv[2]);
+                return write_index(argv[2]);
             }
-
-            break;
         }
 #endif
 
         default:
             print_help();
-            break;
+            return;
     }
 
     return 0;
