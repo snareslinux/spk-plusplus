@@ -86,6 +86,8 @@ int download_to_file(const char *url, FILE *file) {
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
+        curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
         res = curl_easy_perform(curl);
 
@@ -94,6 +96,8 @@ int download_to_file(const char *url, FILE *file) {
         if (res != CURLE_OK) {
             return ERR_EXIT;
         }
+    } else {
+        return ERR_EXIT;
     }
 
     return ERR_OK;

@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "err.h"
 #include "ui/ui.h"
 #include "commands/commands.h"
 #include "package/package.h"
@@ -118,11 +119,11 @@ int main(int argc, char **argv) {
         switch (opt) {
             case 'h':
                 print_help();
-                exit(0);
+                return ERR_OK;
 
             case 'v':
                 print_version();
-                exit(0);
+                return ERR_OK;
         }
     }
 
@@ -162,7 +163,7 @@ int main(int argc, char **argv) {
     switch (command) {
         case CMD_INVALID:
             print_help();
-            return 0;
+            return ERR_EXIT;
         
         case CMD_INSTALL: {
             return install_spk(argc - 1, argv + 1);
@@ -205,24 +206,30 @@ int main(int argc, char **argv) {
             if (argv[2]) {
                 return create_spk(argv[2]);
             }
+
+            return ERR_EXIT;
         }
 
         case CMD_EXTRACT: {
             if (argv[2] && argv[3]) {
                 return extract_spk(argv[2], argv[3], NULL);
             }
+
+            return ERR_EXIT;
         }
 
         case CMD_WRITE_INDEX: {
             if (argv[2]) {
                 return write_index(argv[2]);
             }
+
+            return ERR_EXIT;
         }
 #endif
 
         default:
             print_help();
-            return 1;
+            return ERR_EXIT;
     }
 
     return 0;

@@ -13,6 +13,7 @@
 #include "util/util.hpp"
 #include "repository/repository.hpp"
 #include "commands/remove/remove.h"
+#include "commands/remove/resolve.hpp"
 #include "commands/install/resolve.hpp"
 #include "commands/install/install.h"
 
@@ -82,28 +83,64 @@ int install_packages(int argc, char **argv, bool assume_yes) {
         }
     }
 
-    for (const auto &package : plan.packages) {
-        switch (perform_install(package, workdir)) {
-            case ERR_RETRY: {
-                if (perform_install(package, workdir) != ERR_OK) {
+    bool failed = false;
+    for (size_t i = 0; i < plan.packages.size();) {
+        if (failed) {
+            std::filesystem::path package_dir(PATHDIR_INSTALLED_PKGS);
+            package_dir /= plan.packages[i].name;
+
+            if (perform_remove(package_dir.c_str(), "package.files") == ERR_OK) {
+                for (const auto &dependency : plan.packages[i].dependencies) {
+                    if (remove_dependent_reference(dependency, plan.packages[i].name) != ERR_OK) {
+                        return ERR_EXIT;
+                    }
+                }
+            }
+
+            if (i <= 0) {
+                break;
+            }
+
+            i--;
+
+            continue;
+        } else {
+            switch (perform_install(plan.packages[i], workdir)) {
+                case ERR_RETRY: {
+                    if (perform_install(plan.packages[i], workdir) != ERR_OK) {
+                        failed = true;
+                        if (i > 0) {
+                            i--;
+                        }
+                    }
+                    continue;
+                }
+                
+                case ERR_EXIT:
+                    failed = true;
+                    continue;
+                
+                case ERR_OK:
+                    break;
+                default:
+                    break;
+            }
+
+            for (const auto &dependency : plan.packages[i].dependencies) {
+                if (add_dependent_reference(dependency, plan.packages[i].name) != ERR_OK) {
                     return ERR_EXIT;
                 }
-                break;
             }
-            
-            case ERR_EXIT:
-                return ERR_EXIT;
-            
-            case ERR_OK:
-                break;
-            default:
-                break;
-        }
 
-        for (const auto &dependency : package.dependencies) {
-            if (add_dependent_reference(dependency, package.name) != ERR_OK) {
-                return ERR_EXIT;
-            }
+            i++;
+        }
+    }
+
+    for (const auto &entry : std::filesystem::directory_iterator(workdir)) {
+        std::error_code ec;
+        std::filesystem::remove_all(entry.path(), ec);
+        if (ec) {
+            return ERR_EXIT;
         }
     }
 
