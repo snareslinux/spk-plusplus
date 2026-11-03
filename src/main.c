@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
     switch (command) {
         case CMD_INVALID:
             print_help();
-            return;
+            return 0;
         
         case CMD_INSTALL: {
             return install_spk(argc - 1, argv + 1);
@@ -222,7 +222,7 @@ int main(int argc, char **argv) {
 
         default:
             print_help();
-            return;
+            return 1;
     }
 
     return 0;
