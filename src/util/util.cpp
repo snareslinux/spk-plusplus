@@ -3,7 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
-#include <openssl/sha.h>
+#include <openssl/evp.h>
 
 #include "util/util.hpp"
 
@@ -13,21 +13,44 @@ std::string get_sha256(const std::filesystem::path &path) {
         return "";
     }
 
-    SHA256_CTX context;
-    SHA256_Init(&context);
-
-    char buffer[8192];
-    while (file.read(buffer, sizeof(buffer)) || file.gcount()) {
-        SHA256_Update(&context, buffer, file.gcount());
+    EVP_MD_CTX *context = EVP_MD_CTX_new();
+    if (!context) {
+        return "";
     }
 
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_Final(hash, &context);
+    unsigned char hash[EVP_MAX_MD_SIZE];
+    unsigned int hash_len = 0;
+
+    if (EVP_DigestInit_ex(context, EVP_sha256(), nullptr) != 1) {
+        EVP_MD_CTX_free(context);
+        return "";
+    }
+
+    char buffer[8192];
+
+    while (file.read(buffer, sizeof(buffer)) || file.gcount()) {
+        if (EVP_DigestUpdate(context, buffer, file.gcount()) != 1) {
+            EVP_MD_CTX_free(context);
+            return "";
+        }
+        
+    }
+
+    if (file.bad()) {
+        EVP_MD_CTX_free(context);
+        return "";
+    }
+    
+    if (EVP_DigestFinal_ex(context, hash, &hash_len) != 1) {
+        EVP_MD_CTX_free(context);
+        return "";
+    }
+
+    EVP_MD_CTX_free(context);
 
     std::ostringstream result;
-
-    for (unsigned char byte : hash) {
-        result << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
+    for (unsigned int i = 0; i < hash_len; i++) {
+        result << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
     }
 
     return result.str();
