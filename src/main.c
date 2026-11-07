@@ -200,10 +200,7 @@ int main(int argc, char **argv) {
         }
         
         case CMD_SEARCH: {
-            if (!check_root()) {
-                return ERR_EXIT;
-            }
-            break;
+            return search(argc - 1, argv + 1);
         }
 
         case CMD_LIST: {
