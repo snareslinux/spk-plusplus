@@ -43,6 +43,10 @@ int list(int argc, char **argv) {
             case 'e':
                 explicit_only = true;
                 break;
+
+            default:
+                print_list_help();
+                return ERR_EXIT;
         }
     }
 

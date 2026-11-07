@@ -44,6 +44,10 @@ int install_spk(int argc, char **argv) {
             case 'u':
                 update_repositories();
                 break;
+
+            default:
+                print_install_help();
+                return ERR_EXIT;
         }
     }
 

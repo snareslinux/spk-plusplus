@@ -37,6 +37,10 @@ int autoremove(int argc, char **argv) {
             case 'y':
                 assume_yes = true;
                 break;
+
+            default:
+                print_autoremove_help();
+                return ERR_EXIT;
         }
     }
 

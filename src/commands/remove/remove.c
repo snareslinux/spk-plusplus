@@ -41,6 +41,10 @@ int remove_spk(int argc, char **argv) {
             case 'y':
                 assume_yes = true;
                 break;
+
+            default:
+                print_remove_help();
+                return ERR_EXIT;
         }
     }
 
