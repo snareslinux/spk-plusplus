@@ -7,11 +7,13 @@
 #include "err.h"
 #include "path.h"
 #include "util/util.h"
+#include "ui/ui.h"
 #include "commands/commands.h"
 
 static struct option long_options[] = {
     {"help", no_argument, NULL, 'h'},
     {"repository", required_argument, NULL, 'r'},
+    {"yes", required_argument, NULL, 'y'},
     {NULL, 0, NULL, 0}
 };
 
@@ -30,14 +32,19 @@ int setup(int argc, char **argv) {
     int opt;
 
     bool default_repo = true;
+    bool assume_yes = false;
 
     char *repo = 0;
 
-    while ((opt = getopt_long(argc, argv, "hr:", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "hyr:", long_options, NULL)) != -1) {
         switch (opt) {
             case 'h':
                 print_setup_help();
                 return ERR_OK;
+
+            case 'y':
+                assume_yes = true;
+                break;
 
             case 'r':
                 default_repo = false;
@@ -51,6 +58,10 @@ int setup(int argc, char **argv) {
 
     if (mkdir_p("/etc/spk", 0755) != 0) {
         return ERR_EXIT;
+    }
+
+    if (!ui_confirm(assume_yes, false, "Ensure existing configurations for spk will be overwritten. Would you still like to continue?")) {
+        ui_message("Operation cancelled by user");
     }
 
     FILE *spkconf = fopen(PATH_SPK_CONF, "wb");
