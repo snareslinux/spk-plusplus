@@ -8,6 +8,7 @@ RUN dnf install -y \
         libcurl-devel \
         zstd \
         gdb \
+        vim \
     && dnf clean all
 
 WORKDIR /src
