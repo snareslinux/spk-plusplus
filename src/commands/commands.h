@@ -9,6 +9,7 @@ int setup(int argc, char **argv);
 int install_spk(int argc, char **argv);
 int remove_spk(int argc, char **argv);
 int autoremove(int argc, char **argv);
+int info(int argc, char **argv);
 int list(int argc, char **argv);
 int search(int argc, char **argv);
 int inspect(const char *package);

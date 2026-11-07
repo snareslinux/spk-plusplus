@@ -91,14 +91,14 @@ enum commands {
     CMD_UPDATE,
     CMD_UPGRADE, // NOT IMPLEMENTED
     CMD_SEARCH,
-    CMD_INFO, // NOT IMPLEMENTED
+    CMD_INFO,
     CMD_LIST,
     CMD_INSPECT,
-    CMD_SETUP, // NEEDS UPDATING
+    CMD_SETUP,
 #ifdef CONFIG_DEVELOPMENT_TOOLS
-    CMD_CREATE, // NEEDS UPDATING
+    CMD_CREATE,
     CMD_EXTRACT, // NEEDS UPDATING
-    CMD_WRITE_INDEX, // NEEDS UPDATING
+    CMD_WRITE_INDEX,
 #endif
 };
 
@@ -204,6 +204,10 @@ int main(int argc, char **argv) {
         
         case CMD_SEARCH: {
             return search(argc - 1, argv + 1);
+        }
+
+        case CMD_INFO: {
+            return info(argc - 1, argv + 1);
         }
 
         case CMD_LIST: {

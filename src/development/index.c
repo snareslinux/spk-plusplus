@@ -3,6 +3,7 @@
 
 #include "err.h"
 #include "package/package.h"
+#include "commands/commands.h"
 
 static struct option long_options[] = {
     {"help", no_argument, NULL, 'h'},
