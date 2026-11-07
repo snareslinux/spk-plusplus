@@ -9,6 +9,7 @@ int setup(void);
 int install_spk(int argc, char **argv);
 int remove_spk(int argc, char **argv);
 int autoremove(int argc, char **argv);
+int list(int argc, char **argv);
 int write_index(const char *repository);
 
 #ifdef __cplusplus

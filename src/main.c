@@ -111,7 +111,7 @@ static struct option long_options[] = {
 int main(int argc, char **argv) {
     if (!argv[1]) {
         print_help();
-        return 0;
+        return ERR_OK;
     }
 
     int opt;
@@ -150,7 +150,6 @@ int main(int argc, char **argv) {
         command = CMD_INSPECT;
     if (!strcmp(argv[1], "setup"))
         command = CMD_SETUP;
-
 #ifdef CONFIG_DEVELOPMENT_TOOLS
     if (!strcmp(argv[1], "create"))
         command = CMD_CREATE;
@@ -166,35 +165,49 @@ int main(int argc, char **argv) {
             return ERR_EXIT;
         
         case CMD_INSTALL: {
-            install_spk(argc - 1, argv + 1);
-            break;
+            if (!check_root()) {
+                return ERR_EXIT;
+            }
+            return install_spk(argc - 1, argv + 1);
         }
 
         case CMD_REMOVE: {
-            remove_spk(argc - 1, argv + 1);
-            break;
+            if (!check_root()) {
+                return ERR_EXIT;
+            }
+            return remove_spk(argc - 1, argv + 1);
         }
 
         case CMD_AUTOREMOVE: {
-            autoremove(argc - 1, argv + 1);
-            break;
+            if (!check_root()) {
+                return ERR_EXIT;
+            }
+            return autoremove(argc - 1, argv + 1);
         }
 
         case CMD_UPDATE: {
-            update_repositories();
-            break;
+            if (!check_root()) {
+                return ERR_EXIT;
+            }
+            return update_repositories();
         }
 
         case CMD_UPGRADE: {
+            if (!check_root()) {
+                return ERR_EXIT;
+            }
             break;
         }
         
         case CMD_SEARCH: {
+            if (!check_root()) {
+                return ERR_EXIT;
+            }
             break;
         }
 
         case CMD_LIST: {
-            break;
+            return list(argc - 1, argv + 1);
         }
 
         case CMD_INSPECT: {
@@ -202,8 +215,10 @@ int main(int argc, char **argv) {
         }
 
         case CMD_SETUP: {
-            setup();
-            break;
+            if (!check_root()) {
+                return ERR_EXIT;
+            }
+            return setup();
         }
 
 #ifdef CONFIG_DEVELOPMENT_TOOLS
@@ -211,23 +226,24 @@ int main(int argc, char **argv) {
             if (argv[2]) {
                 return create_spk(argv[2]);
             }
-
             return ERR_EXIT;
         }
 
         case CMD_EXTRACT: {
-            if (argv[2] && argv[3]) {
-                extract_spk(argv[2], argv[3], NULL);
+            if (!check_root()) {
+                return ERR_EXIT;
             }
-
+            
+            if (argv[2] && argv[3]) {
+                return extract_spk(argv[2], argv[3], NULL);
+            }
             return ERR_EXIT;
         }
 
         case CMD_WRITE_INDEX: {
             if (argv[2]) {
-                write_index(argv[2]);
+                return write_index(argv[2]);
             }
-
             return ERR_EXIT;
         }
 #endif
