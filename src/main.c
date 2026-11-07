@@ -50,7 +50,7 @@ void print_help(void) {
     printf("    inspect <package>             - List files installed by package\n");
     printf("    setup                         - Setup spk for this system\n");
     printf("    extract <package> <root path> - Extracts a spk file into root\n");
-    printf("    create <directory>            - Creates a spk file from the directories content\n");
+    printf("    create <directory>            - Creates a spk file from the directorys content\n");
     printf("    write-index <directory>       - Creates a index file for the repository in the directory\n");
     #else
     printf("    install <package> - Install package(s)\n");
@@ -226,10 +226,7 @@ int main(int argc, char **argv) {
 
 #ifdef CONFIG_DEVELOPMENT_TOOLS
         case CMD_CREATE: {
-            if (argv[2]) {
-                return create_spk(argv[2]);
-            }
-            return ERR_EXIT;
+            return create_spk(argc - 1, argv + 1);
         }
 
         case CMD_EXTRACT: {

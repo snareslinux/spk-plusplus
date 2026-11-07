@@ -13,7 +13,7 @@
 static struct option long_options[] = {
     {"help", no_argument, NULL, 'h'},
     {"repository", required_argument, NULL, 'r'},
-    {"yes", required_argument, NULL, 'y'},
+    {"yes", no_argument, NULL, 'y'},
     {NULL, 0, NULL, 0}
 };
 

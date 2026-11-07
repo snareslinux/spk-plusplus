@@ -4,6 +4,7 @@
 #include <cstring>
 #include <iostream>
 
+#include "err.h"
 #include "ui/ui.hpp"
 #include "tar/tar.h"
 #include "util/util.h"
@@ -19,7 +20,7 @@ void copy_value(char *dest, size_t size, const std::string &str) {
     std::memcpy(dest, value.c_str(), value.size() + 1);
 }
 
-int create_spk(const char *srcdir) {
+int write_spk(const char *srcdir, const char *out) {
     std::filesystem::path src = srcdir;
 
     struct spk_header header {};
@@ -27,7 +28,7 @@ int create_spk(const char *srcdir) {
 
     std::ifstream metadata_f(src / "metadata");
     if (!metadata_f) {
-        return 1;
+        return ERR_EXIT;
     }
     
     std::string entry;
@@ -52,21 +53,35 @@ int create_spk(const char *srcdir) {
     auto archive = std::filesystem::temp_directory_path() / "spk-files.tar.zst";
     
     if (!std::filesystem::exists(src / "files")) {
-        return 1;
+        return ERR_EXIT;
     } else {
         if (write_archive(archive.c_str(), (src / "files").c_str()) != 0) {
-            return 1;
+            return ERR_EXIT;
         }
     }
 
     std::ifstream files_f(archive.c_str(), std::ios::binary);
     if (!files_f) {
-        return 1;
+        return ERR_EXIT;
+    }
+    
+    std::string output_name;
+    if (out == 0) {
+        output_name = std::string(metadata.name) + "-" + std::string(metadata.version) + ".spk";
+    } else {
+        output_name = out;
+        if (output_name.empty()) {
+            return ERR_EXIT;
+        }
+
+        if (!output_name.contains(".spk")) {
+            output_name += ".spk";
+        }
     }
 
-    std::ofstream spk_f(std::string(metadata.name) + "-" + std::string(metadata.version) + ".spk", std::ios::binary);
+    std::ofstream spk_f(output_name, std::ios::binary);
     if (!spk_f) {
-        return 1;
+        return ERR_EXIT;
     }
 
     ui.end_task(archiveui, "Package files compressed");
@@ -94,5 +109,5 @@ int create_spk(const char *srcdir) {
 
     std::filesystem::remove(archive);
 
-    return 0;
+    return ERR_OK;
 }

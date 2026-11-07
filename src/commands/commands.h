@@ -13,6 +13,7 @@ int list(int argc, char **argv);
 int search(int argc, char **argv);
 int inspect(const char *package);
 int write_index(const char *repository);
+int create_spk(int argc, char **argv);
 
 #ifdef __cplusplus
 }
