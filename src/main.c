@@ -87,18 +87,18 @@ enum commands {
     CMD_INVALID,
     CMD_INSTALL,
     CMD_REMOVE,
-    CMD_AUTOREMOVE,
+    CMD_AUTOREMOVE, // NOT DONE
     CMD_UPDATE,
-    CMD_UPGRADE,
+    CMD_UPGRADE, // NOT IMPLEMENTED
     CMD_SEARCH,
-    CMD_INFO,
+    CMD_INFO, // NOT IMPLEMENTED
     CMD_LIST,
     CMD_INSPECT,
-    CMD_SETUP,
+    CMD_SETUP, // NEEDS UPDATING
 #ifdef CONFIG_DEVELOPMENT_TOOLS
-    CMD_CREATE,
-    CMD_EXTRACT,
-    CMD_WRITE_INDEX,
+    CMD_CREATE, // NEEDS UPDATING
+    CMD_EXTRACT, // NEEDS UPDATING
+    CMD_WRITE_INDEX, // NEEDS UPDATING
 #endif
 };
 
@@ -124,6 +124,9 @@ int main(int argc, char **argv) {
             case 'v':
                 print_version();
                 return ERR_OK;
+
+            case '?':
+                return ERR_EXIT;
         }
     }
 
@@ -218,7 +221,7 @@ int main(int argc, char **argv) {
             if (!check_root()) {
                 return ERR_EXIT;
             }
-            return setup();
+            return setup(argc - 1, argv + 1);
         }
 
 #ifdef CONFIG_DEVELOPMENT_TOOLS
