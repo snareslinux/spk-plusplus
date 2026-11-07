@@ -44,8 +44,7 @@ int list(int argc, char **argv) {
                 explicit_only = true;
                 break;
 
-            default:
-                print_list_help();
+            case '?':
                 return ERR_EXIT;
         }
     }

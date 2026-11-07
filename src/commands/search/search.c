@@ -35,8 +35,7 @@ int search(int argc, char **argv) {
                 update_repositories();
                 break;
 
-            default:
-                print_search_help();
+            case '?':
                 return ERR_EXIT;
         }
     }
