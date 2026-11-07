@@ -35,6 +35,10 @@ int install_packages(int argc, char **argv, bool assume_yes) {
         packages.push_back(tmp); 
     }
 
+    if (packages.empty()) {
+        return ERR_EXIT;
+    }
+
     std::filesystem::path workdir = std::filesystem::temp_directory_path() / "spkinstallation";
     std::filesystem::create_directories(workdir);
     for (const auto &entry : std::filesystem::directory_iterator(workdir)) {
