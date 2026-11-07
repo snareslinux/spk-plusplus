@@ -17,7 +17,7 @@ int list_packages(bool no_dependencies, bool long_format) {
         if (entry.is_directory() && std::filesystem::exists(entry.path() / "package.metadata")) {
             if (!no_dependencies && !long_format) {
                 // SKIP OPENING METADATA
-                std::cout << entry.path().filename() << std::endl;
+                std::cout << entry.path().filename().string() << std::endl;
                 continue;
             }
 
