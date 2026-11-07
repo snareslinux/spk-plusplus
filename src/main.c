@@ -241,10 +241,7 @@ int main(int argc, char **argv) {
         }
 
         case CMD_WRITE_INDEX: {
-            if (argv[2]) {
-                return write_index(argv[2]);
-            }
-            return ERR_EXIT;
+            return write_index(argc - 1, argv + 1);
         }
 #endif
 

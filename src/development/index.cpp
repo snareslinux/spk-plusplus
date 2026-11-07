@@ -9,7 +9,7 @@
 #include "commands/commands.h"
 #include "package/package.h"
 
-int write_index(const char *repository) {
+int write_indexfile(const char *repository, const char *out) {
     std::filesystem::path repo = repository;
     std::filesystem::path packages = repo / "packages";
 
@@ -17,7 +17,13 @@ int write_index(const char *repository) {
         return ERR_EXIT;
     }
 
-    std::ofstream index(repo / "index", std::ios::trunc);
+    std::ofstream index;
+    if (out == 0) {
+        index.open(repo / "index", std::ios::trunc);
+    } else {
+        index.open(out, std::ios::trunc);
+    } 
+
     if (!index) {
         return ERR_EXIT;
     }
@@ -36,8 +42,6 @@ int write_index(const char *repository) {
         if (get_metadata(entry.path().c_str(), &metadata) != ERR_OK) {
             return ERR_EXIT;
         }
-
-
 
         index << metadata.name << "|"
             << metadata.version << "|"
