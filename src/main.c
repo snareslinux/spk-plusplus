@@ -208,7 +208,10 @@ int main(int argc, char **argv) {
         }
 
         case CMD_INSPECT: {
-            break;
+            if (argv[2]) {
+                return inspect(argv[2]);
+            }
+            return ERR_EXIT;
         }
 
         case CMD_SETUP: {
