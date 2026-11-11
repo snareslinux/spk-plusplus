@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <cstdio>
+#include <cstdio> 
 
 #include "err.h"
 #include "path.h"
@@ -11,6 +11,7 @@
 #include "package/package.h"
 #include "util/util.h"
 #include "util/util.hpp"
+#include "util/depver.hpp"
 #include "repository/repository.hpp"
 #include "commands/remove/remove.h"
 #include "commands/remove/resolve.hpp"
@@ -18,6 +19,7 @@
 #include "commands/install/install.h"
 
 int perform_install(InsPackage package, std::string workdir);
+int perform_upgrade(InsPackage &package, std::string workdir);
 
 int install_packages(int argc, char **argv, bool assume_yes) {
     std::vector<InsPackage> packages;
@@ -39,8 +41,13 @@ int install_packages(int argc, char **argv, bool assume_yes) {
         return ERR_EXIT;
     }
 
+    return apply_install(packages, available, assume_yes, true);
+}
+
+int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool assume_yes, bool mark_explicit) {
     std::filesystem::path workdir = std::filesystem::temp_directory_path() / "spkinstallation";
     std::filesystem::create_directories(workdir);
+
     for (const auto &entry : std::filesystem::directory_iterator(workdir)) {
         std::error_code ec;
         std::filesystem::remove_all(entry.path(), ec);
@@ -49,14 +56,22 @@ int install_packages(int argc, char **argv, bool assume_yes) {
         }
     }
 
-    InstallPlan plan = ins_resolve(packages, available);
+    InstallPlan plan = ins_resolve(requested, available, mark_explicit);
     if (plan.error) {
         return ERR_EXIT;
     }
 
+    if (plan.packages.empty()) {
+        return ERR_OK;
+    }
+
     ui.message("Package and Dependencies:");
     for (const auto &package : plan.packages) {
-        ui.message("    %s-%s", package.name.c_str(), package.version.c_str());
+        if (package.upgrade) {
+            ui.message("    %s %s -> %s", package.name.c_str(), package.old_version.c_str(), package.version.c_str());
+        } else {
+            ui.message("    %s-%s", package.name.c_str(), package.version.c_str());
+        }
     }
 
     if (!ui.confirm(assume_yes, false, "Do you wish to install these %d packages", (int)plan.packages.size())) {
@@ -89,55 +104,60 @@ int install_packages(int argc, char **argv, bool assume_yes) {
 
     bool failed = false;
     for (size_t i = 0; i < plan.packages.size();) {
+        InsPackage &package = plan.packages[i];
         if (failed) {
-            std::filesystem::path package_dir(PATHDIR_INSTALLED_PKGS);
-            package_dir /= plan.packages[i].name;
+            if (!package.upgrade) {
+                std::filesystem::path package_dir(PATHDIR_INSTALLED_PKGS);
+                package_dir /= package.name;
 
-            if (perform_remove(package_dir.c_str(), "package.files") == ERR_OK) {
-                for (const auto &dependency : plan.packages[i].dependencies) {
-                    if (remove_dependent_reference(dependency, plan.packages[i].name) != ERR_OK) {
-                        return ERR_EXIT;
+                if (perform_remove(package_dir.c_str(), "package.files") == ERR_OK) {
+                    for (const auto &spec : package.dependencies) {
+                        if (remove_dependent_reference(dependency_name(spec), package.name) != ERR_OK) {
+                            return ERR_EXIT;
+                        }
                     }
                 }
             }
 
-            if (i <= 0) {
+            if (i == 0) {
                 break;
             }
 
             i--;
 
             continue;
-        } else {
-            switch (perform_install(plan.packages[i], workdir)) {
-                case ERR_RETRY: {
-                    if (perform_install(plan.packages[i], workdir) != ERR_OK) {
-                        failed = true;
-                        if (i > 0) {
-                            i--;
-                        }
-                    }
-                    continue;
-                }
-                
-                case ERR_EXIT:
-                    failed = true;
-                    continue;
-                
-                case ERR_OK:
-                    break;
-                default:
-                    break;
-            }
-
-            for (const auto &dependency : plan.packages[i].dependencies) {
-                if (add_dependent_reference(dependency, plan.packages[i].name) != ERR_OK) {
-                    return ERR_EXIT;
-                }
-            }
-
-            i++;
         }
+
+        int result;
+        if (package.upgrade) {
+            result = perform_upgrade(package, workdir);
+        } else {
+            result = perform_install(package, workdir);
+        }
+
+        if (result == ERR_RETRY && !package.upgrade) {
+            result = perform_install(package, workdir);
+        }
+
+        if (result != ERR_OK) {
+            failed = true;
+            
+            if (i == 0) {
+                break;
+            }
+
+            i--;
+
+            continue;
+        }
+
+        for (const auto &spec : package.dependencies) {
+            if (add_dependent_reference(dependency_name(spec), package.name) != ERR_OK) {
+                return ERR_EXIT;
+            }
+        }
+
+        i++;
     }
 
     for (const auto &entry : std::filesystem::directory_iterator(workdir)) {
@@ -146,6 +166,10 @@ int install_packages(int argc, char **argv, bool assume_yes) {
         if (ec) {
             return ERR_EXIT;
         }
+    }
+
+    if (failed) {
+        return ERR_EXIT;
     }
 
     return ERR_OK;
@@ -181,7 +205,11 @@ int perform_install(InsPackage package, std::string workdir) {
     }
     metadataf << std::endl;
 
-    metadataf << "dependents=" << std::endl;
+    metadataf << "dependents=";
+    for (const auto &dependent : package.dependents) {
+        metadataf << dependent << ",";
+    }
+    metadataf << std::endl;
 
     metadataf << "reason=";
     if (package.is_dependency) {
@@ -202,4 +230,29 @@ int perform_install(InsPackage package, std::string workdir) {
     }
 
     return ERR_OK;
+}
+
+int perform_upgrade(InsPackage &package, std::string workdir) {
+    RemPackage old;
+    if (get_package_removaldata(package.name, &old) != ERR_OK) {
+        return ERR_EXIT;
+    }
+
+    package.dependents = old.dependents;
+
+
+    std::filesystem::path package_dir = PATHDIR_INSTALLED_PKGS;
+    package_dir /= package.name;
+
+    if (perform_remove(package_dir.c_str(), "package.files") != ERR_OK) {
+        return ERR_EXIT;
+    }
+
+    for (const auto &dependency : old.dependencies) {
+        if (remove_dependent_reference(dependency, package.name) != ERR_OK) {
+            return ERR_EXIT;
+        }
+    }
+
+    return perform_install(package, workdir);
 }

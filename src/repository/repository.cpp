@@ -8,6 +8,7 @@
 #include "path.h"
 #include "util/util.h"
 #include "util/util.hpp"
+#include "util/depver.hpp"
 #include "repository/repository.hpp"
 #include "repository/repository.h"
 
@@ -158,13 +159,37 @@ int get_available_packages(std::vector<RepoPackage> *packages) {
     return ERR_OK;
 }
 
-int find_package(std::vector<RepoPackage> &available, std::string name, RepoPackage *out) {
-    for (auto &package : available) {
-        if (package.name == name) {
-            *out = package;
-            return ERR_OK;
+int find_best_package(std::vector<RepoPackage> &available, const Dependency &dependency, RepoPackage *out) {
+    bool found = false;
+    RepoPackage best;
+
+    for (const auto &package : available) {
+        if (package.name != dependency.name) {
+            continue;
+        }
+
+        if (!version_satisfies(package.version, dependency)) {
+            continue;
+        }
+
+        if (!found || compare_versions(package.version, best.version) > 0) {
+            best = package;
+            found = true;
         }
     }
 
-    return ERR_EXIT;
+    if (!found) {
+        return ERR_EXIT;
+    }
+
+    *out = best;
+
+    return ERR_OK;
+}
+
+int find_package(std::vector<RepoPackage> &available, std::string name, RepoPackage *out) {
+    Dependency dependency;
+    dependency.name = name;
+
+    return find_best_package(available, dependency, out);
 }

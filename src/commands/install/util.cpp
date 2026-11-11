@@ -11,12 +11,13 @@
 #include "path.h"
 #include "ui/ui.hpp"
 #include "util/util.hpp"
+#include "util/depver.hpp"
 #include "package/package.h"
 #include "repository/repository.hpp"
-#include "commands/install/install.h"
 #include "commands/install/resolve.hpp"
+#include "commands/remove/resolve.hpp"
 
-int get_package_data(std::vector<RepoPackage> &available, std::string name, InsPackage *out) {
+int get_package_data(std::vector<RepoPackage> &available, std::string name, InsPackage *out, const Dependency *constraint) {
     InsPackage newpkg {};
 
     if (name.find(".spk") != std::string::npos) {
@@ -46,8 +47,16 @@ int get_package_data(std::vector<RepoPackage> &available, std::string name, InsP
         // SEARCH REPO
         newpkg.local = false;
         newpkg.is_dependency = false;
+
+        Dependency dependency;
+        if (constraint) {
+            dependency = *constraint;
+        } else {
+            dependency.name = name;
+        }
+
         RepoPackage available_package;
-        if (find_package(available, name, &available_package) != ERR_OK) {
+        if (find_best_package(available, dependency, &available_package) != ERR_OK) {
             return ERR_EXIT;
         }
 
@@ -142,7 +151,7 @@ int add_dependent_reference(std::string dependency, std::string dependent) {
     return ERR_OK;
 }
 
-int get_installed_packages(std::vector<std::string> *out) {
+int get_installed_packages(std::vector<RemPackage> *out) {
     std::error_code ec;
     for (const auto &entry : std::filesystem::directory_iterator(PATHDIR_INSTALLED_PKGS, ec)) {
         if (ec) {
@@ -151,7 +160,12 @@ int get_installed_packages(std::vector<std::string> *out) {
 
         if (entry.exists() && entry.is_directory()) {
             if (std::filesystem::exists(entry.path() / "package.metadata")) {
-                out->push_back(entry.path().filename());
+                RemPackage package;
+                if (get_package_removaldata(entry.path().filename().string(), &package) != ERR_OK) {
+                    return ERR_EXIT;
+                }
+
+                out->push_back(package);
             } else {
                 continue;
             }

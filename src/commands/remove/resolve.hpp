@@ -8,6 +8,7 @@ struct RemPackage {
     std::string name;
     std::string version;
     std::vector<std::string> dependencies;
+    std::vector<std::string> dependency_specs;
     std::vector<std::string> dependents;
     bool is_explicit = true;
 };

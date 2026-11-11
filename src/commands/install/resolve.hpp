@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include "repository/repository.hpp"
+#include "commands/remove/resolve.hpp"
+#include "util/depver.hpp"
 
 struct InsPackage {
     std::string name;
@@ -13,18 +15,21 @@ struct InsPackage {
     std::string source;
     bool local = false;
     bool is_dependency = false;
+    bool upgrade = false;
+    std::string old_version;
     std::string sha256;
 };
 
-int get_package_data(std::vector<RepoPackage> &available, std::string name, InsPackage *out);
+int get_package_data(std::vector<RepoPackage> &available, std::string name, InsPackage *out, const Dependency *constraint = nullptr);
 int add_dependent_reference(std::string dependency, std::string dependent);
-int get_installed_packages(std::vector<std::string> *out);
+int get_installed_packages(std::vector<RemPackage> *out);
 
 struct InstallPlan {
     std::vector<InsPackage> packages;
     bool error = false;
 };
 
-InstallPlan ins_resolve(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available);
+InstallPlan ins_resolve(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool mark_explicit);
+int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool assume_yes, bool mark_explicit);
 
 #endif

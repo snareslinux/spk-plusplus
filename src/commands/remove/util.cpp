@@ -6,6 +6,7 @@
 
 #include "err.h"
 #include "path.h"
+#include "util/depver.hpp"
 #include "commands/remove/remove.h"
 #include "commands/remove/resolve.hpp"
 
@@ -53,7 +54,8 @@ int get_package_removaldata(std::string name, RemPackage *out) {
 
             while (std::getline(stream, dependency, ',')) {
                 if (!dependency.empty()) {
-                    newpkg.dependencies.push_back(dependency);
+                    newpkg.dependency_specs.push_back(dependency);
+                    newpkg.dependencies.push_back(dependency_name(dependency));
                 }
             }
         } else if (!line.compare(0, 11, "dependents=")) {

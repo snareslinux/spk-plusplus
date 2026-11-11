@@ -13,6 +13,7 @@ int info(int argc, char **argv);
 int list(int argc, char **argv);
 int search(int argc, char **argv);
 int inspect(const char *package);
+int upgrade_spk(int argc, char **argv);
 
 int write_index(int argc, char **argv);
 int write_indexfile(const char *repository, const char *out);

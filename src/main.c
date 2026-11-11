@@ -89,7 +89,7 @@ enum commands {
     CMD_REMOVE,
     CMD_AUTOREMOVE, // NOT DONE
     CMD_UPDATE,
-    CMD_UPGRADE, // NOT IMPLEMENTED
+    CMD_UPGRADE,
     CMD_SEARCH,
     CMD_INFO,
     CMD_LIST,
@@ -199,7 +199,8 @@ int main(int argc, char **argv) {
             if (!check_root()) {
                 return ERR_EXIT;
             }
-            break;
+            
+            return upgrade_spk(argc - 1, argv + 1);
         }
         
         case CMD_SEARCH: {

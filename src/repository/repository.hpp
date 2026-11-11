@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "util/depver.hpp"
+
 struct RepoPackage {
     std::string repository_name;
     std::string repository_location;
@@ -21,8 +23,8 @@ struct Repository {
     std::string location;
 };
 
-//int update_repositories(void);
 int get_available_packages(std::vector<RepoPackage> *packages);
+int find_best_package(std::vector<RepoPackage> &available, const Dependency &dependency, RepoPackage *out);
 int find_package(std::vector<RepoPackage> &available, std::string name, RepoPackage *out);
 
 #endif
