@@ -97,7 +97,7 @@ enum commands {
     CMD_SETUP,
 #ifdef CONFIG_DEVELOPMENT_TOOLS
     CMD_CREATE,
-    CMD_EXTRACT, // NEEDS UPDATING
+    CMD_EXTRACT,
     CMD_WRITE_INDEX,
 #endif
 };
@@ -235,14 +235,7 @@ int main(int argc, char **argv) {
         }
 
         case CMD_EXTRACT: {
-            if (!check_root()) {
-                return ERR_EXIT;
-            }
-            
-            if (argv[2] && argv[3]) {
-                return extract_spk(argv[2], argv[3], NULL);
-            }
-            return ERR_EXIT;
+            return extract_spk(argc - 1, argv + 1);
         }
 
         case CMD_WRITE_INDEX: {

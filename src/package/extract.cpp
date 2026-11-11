@@ -2,20 +2,21 @@
 #include <filesystem>
 #include <vector>
 
+#include "err.h"
 #include "ui/ui.hpp"
 #include "util/util.h"
 #include "tar/tar.h"
 #include "package/package.h"
 #include "spk.h"
 
-int extract_spk(const char *spkpath, const char *extract_root, const char *logpath) {
+int perform_extract(const char *spkpath, const char *extract_root, const char *logpath) {
     if (!check_spk_path(spkpath)) {
-        return 1;
+        return ERR_EXIT;
     }
     
     std::ifstream spk_f(spkpath);
     if (!spk_f) {
-        return 1;
+        return ERR_EXIT;
     }
     
     struct spk_header header;
@@ -30,22 +31,22 @@ int extract_spk(const char *spkpath, const char *extract_root, const char *logpa
     if (logpath) {
         FILE *log = fopen(logpath, "w");
         if (!log) {
-            return 1;
+            return ERR_EXIT;
         }
 
         if (extract_archive(buffer.data(), header.data_size, extract_root, log) != 0) {
             fclose(log);
-            return 1;
+            return ERR_EXIT;
         }
 
         fclose(log);
     } else {
         if (extract_archive(buffer.data(), header.data_size, extract_root, NULL) != 0) {
-            return 1;
+            return ERR_EXIT;
         }
     }
 
     ui.end_task(extractui, "Extraction Done!");
 
-    return 0;
+    return ERR_OK;
 }

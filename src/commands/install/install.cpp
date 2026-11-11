@@ -219,7 +219,7 @@ int perform_install(InsPackage package, std::string workdir) {
     }
     metadataf << std::endl;
 
-    if (extract_spk(spkpath.c_str(), "/", (package_dir / "install.journal").c_str()) != 0) {
+    if (perform_extract(spkpath.c_str(), "/", (package_dir / "install.journal").c_str()) != 0) {
         // REMOVE PACKAGE
         // MAY PERFORM RETRY DEPENDING ON ERROR
         perform_remove(package_dir.c_str(), "install.journal");

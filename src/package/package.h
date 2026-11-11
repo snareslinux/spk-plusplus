@@ -14,7 +14,7 @@ bool check_spk_f(FILE *spk);
 bool check_spk_path(const char *path);
 
 int write_spk(const char *srcdir, const char *out);
-int extract_spk(const char *spkpath, const char *extract_root, const char *logpath);
+int perform_extract(const char *spkpath, const char *extract_root, const char *logpath);
 
 int get_metadata(const char *path, struct metadata *out);
 

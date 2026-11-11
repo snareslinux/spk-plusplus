@@ -18,6 +18,7 @@ int upgrade_spk(int argc, char **argv);
 int write_index(int argc, char **argv);
 int write_indexfile(const char *repository, const char *out);
 int create_spk(int argc, char **argv);
+int extract_spk(int argc, char **argv);
 
 #ifdef __cplusplus
 }
