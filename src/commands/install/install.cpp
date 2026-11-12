@@ -18,10 +18,15 @@
 #include "commands/install/resolve.hpp"
 #include "commands/install/install.h"
 
-int perform_install(InsPackage package, std::string workdir);
-int perform_upgrade(InsPackage &package, std::string workdir);
+int perform_install(InsPackage package, std::string workdir, std::string root);
+int perform_upgrade(InsPackage &package, std::string workdir, std::string root);
 
-int install_packages(int argc, char **argv, bool assume_yes) {
+int install_packages(int argc, char **argv, bool assume_yes, const char *root) {
+    std::string target_root = root ? root : "/";
+    if (target_root.back() != '/') {
+        target_root.push_back('/');
+    }
+
     std::vector<InsPackage> packages;
     std::vector<RepoPackage> available;
     if (get_available_packages(&available) != ERR_OK) {
@@ -41,10 +46,10 @@ int install_packages(int argc, char **argv, bool assume_yes) {
         return ERR_EXIT;
     }
 
-    return apply_install(packages, available, assume_yes, true);
+    return apply_install(packages, available, assume_yes, true, target_root);
 }
 
-int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool assume_yes, bool mark_explicit) {
+int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool assume_yes, bool mark_explicit, std::string root) {
     std::filesystem::path workdir = std::filesystem::temp_directory_path() / "spkinstallation";
     std::filesystem::create_directories(workdir);
 
@@ -56,7 +61,7 @@ int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &
         }
     }
 
-    InstallPlan plan = ins_resolve(requested, available, mark_explicit);
+    InstallPlan plan = ins_resolve(requested, available, mark_explicit, root);
     if (plan.error) {
         return ERR_EXIT;
     }
@@ -107,12 +112,13 @@ int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &
         InsPackage &package = plan.packages[i];
         if (failed) {
             if (!package.upgrade) {
-                std::filesystem::path package_dir(PATHDIR_INSTALLED_PKGS);
+                std::filesystem::path package_dir = root;
+                package_dir /= PATHDIR_INSTALLED_PKGS;
                 package_dir /= package.name;
 
-                if (perform_remove(package_dir.c_str(), "package.files") == ERR_OK) {
+                if (perform_remove(package_dir.c_str(), "package.files", root.c_str()) == ERR_OK) {
                     for (const auto &spec : package.dependencies) {
-                        if (remove_dependent_reference(dependency_name(spec), package.name) != ERR_OK) {
+                        if (remove_dependent_reference(dependency_name(spec), package.name, root) != ERR_OK) {
                             return ERR_EXIT;
                         }
                     }
@@ -130,13 +136,13 @@ int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &
 
         int result;
         if (package.upgrade) {
-            result = perform_upgrade(package, workdir);
+            result = perform_upgrade(package, workdir, root);
         } else {
-            result = perform_install(package, workdir);
+            result = perform_install(package, workdir, root);
         }
 
         if (result == ERR_RETRY && !package.upgrade) {
-            result = perform_install(package, workdir);
+            result = perform_install(package, workdir, root);
         }
 
         if (result != ERR_OK) {
@@ -152,7 +158,7 @@ int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &
         }
 
         for (const auto &spec : package.dependencies) {
-            if (add_dependent_reference(dependency_name(spec), package.name) != ERR_OK) {
+            if (add_dependent_reference(dependency_name(spec), package.name, root) != ERR_OK) {
                 return ERR_EXIT;
             }
         }
@@ -175,7 +181,7 @@ int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &
     return ERR_OK;
 }
 
-int perform_install(InsPackage package, std::string workdir) {
+int perform_install(InsPackage package, std::string workdir, std::string root) {
     std::filesystem::path spkpath(workdir);
     spkpath /= package.name;
     std::ifstream spk(spkpath, std::ios::binary);
@@ -183,7 +189,9 @@ int perform_install(InsPackage package, std::string workdir) {
         return ERR_EXIT;
     }
 
-    std::filesystem::path install_dir = PATHDIR_INSTALLED_PKGS;
+    std::filesystem::path install_dir = root;
+    install_dir /= PATHDIR_INSTALLED_PKGS;
+
     std::filesystem::path package_dir = install_dir / package.name;
 
     if (std::filesystem::exists(package_dir / "package.metadata")) return ERR_EXIT;
@@ -193,7 +201,7 @@ int perform_install(InsPackage package, std::string workdir) {
         // WRITE PACKAGE INFO
     std::ofstream metadataf(package_dir / "package.metadata");
     if (!metadataf) {
-        perform_remove(package_dir.c_str(), "package.files");
+        perform_remove(package_dir.c_str(), "package.files", root.c_str());
         return ERR_RETRY;
     }
 
@@ -219,10 +227,10 @@ int perform_install(InsPackage package, std::string workdir) {
     }
     metadataf << std::endl;
 
-    if (perform_extract(spkpath.c_str(), "/", (package_dir / "install.journal").c_str()) != 0) {
+    if (perform_extract(spkpath.c_str(), root.c_str(), (package_dir / "install.journal").c_str()) != 0) {
         // REMOVE PACKAGE
         // MAY PERFORM RETRY DEPENDING ON ERROR
-        perform_remove(package_dir.c_str(), "install.journal");
+        perform_remove(package_dir.c_str(), "install.journal", root.c_str());
         return ERR_RETRY;
     } else {
         // SET JOURNAL AS INSTALL LIST
@@ -232,27 +240,28 @@ int perform_install(InsPackage package, std::string workdir) {
     return ERR_OK;
 }
 
-int perform_upgrade(InsPackage &package, std::string workdir) {
+int perform_upgrade(InsPackage &package, std::string workdir, std::string root) {
     RemPackage old;
-    if (get_package_removaldata(package.name, &old) != ERR_OK) {
+    if (get_package_removaldata(package.name, root, &old) != ERR_OK) {
         return ERR_EXIT;
     }
 
     package.dependents = old.dependents;
 
 
-    std::filesystem::path package_dir = PATHDIR_INSTALLED_PKGS;
+    std::filesystem::path package_dir = root;
+    package_dir /= PATHDIR_INSTALLED_PKGS;
     package_dir /= package.name;
 
-    if (perform_remove(package_dir.c_str(), "package.files") != ERR_OK) {
+    if (perform_remove(package_dir.c_str(), "package.files", root.c_str()) != ERR_OK) {
         return ERR_EXIT;
     }
 
     for (const auto &dependency : old.dependencies) {
-        if (remove_dependent_reference(dependency, package.name) != ERR_OK) {
+        if (remove_dependent_reference(dependency, package.name, root) != ERR_OK) {
             return ERR_EXIT;
         }
     }
 
-    return perform_install(package, workdir);
+    return perform_install(package, workdir, root);
 }

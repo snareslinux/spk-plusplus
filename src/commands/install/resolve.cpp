@@ -168,11 +168,11 @@ static bool validate_plan(std::vector<InsPackage> &plan, std::vector<RemPackage>
     return true;
 }
 
-InstallPlan ins_resolve(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool mark_explicit) {
+InstallPlan ins_resolve(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool mark_explicit, std::string root) {
     InstallPlan plan;
 
     std::vector<RemPackage> installed;
-    if (get_installed_packages(&installed) != ERR_OK) {
+    if (get_installed_packages(&installed, root) != ERR_OK) {
         plan.error = true;
         return plan;
     }

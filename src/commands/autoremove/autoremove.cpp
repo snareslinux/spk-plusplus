@@ -12,7 +12,8 @@ int perform_autoremove(bool assume_yes) {
         return ERR_OK;
     }
 
-    std::filesystem::path unowned_path = PATHDIR_INSTALLED_PKGS;
+    std::filesystem::path unowned_path = "/";
+    unowned_path /= PATHDIR_INSTALLED_PKGS;
     unowned_path /= "unowned";
     unowned_path /= "unowned.files";
     

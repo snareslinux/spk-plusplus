@@ -13,8 +13,8 @@ struct RemPackage {
     bool is_explicit = true;
 };
 
-int get_package_removaldata(std::string name, RemPackage *out);
-int remove_dependent_reference(std::string dependency, std::string dependent);
+int get_package_removaldata(std::string name, std::string root, RemPackage *out);
+int remove_dependent_reference(std::string dependency, std::string dependent, std::string root);
 
 struct RemovePlan {
     std::vector<RemPackage> packages;
@@ -22,6 +22,6 @@ struct RemovePlan {
     bool error = false;
 };
 
-RemovePlan rem_resolve(std::vector<RemPackage> requested);
+RemovePlan rem_resolve(std::vector<RemPackage> requested, std::string root);
 
 #endif

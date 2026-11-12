@@ -75,8 +75,9 @@ int get_package_data(std::vector<RepoPackage> &available, std::string name, InsP
     return ERR_OK;
 }
 
-int add_dependent_reference(std::string dependency, std::string dependent) {
-    std::filesystem::path pkgdir = PATHDIR_INSTALLED_PKGS;
+int add_dependent_reference(std::string dependency, std::string dependent, std::string root) {
+    std::filesystem::path pkgdir = root;
+    pkgdir /= PATHDIR_INSTALLED_PKGS;
     pkgdir /= dependency;
     
     std::filesystem::path metadata = pkgdir / "package.metadata";
@@ -151,9 +152,16 @@ int add_dependent_reference(std::string dependency, std::string dependent) {
     return ERR_OK;
 }
 
-int get_installed_packages(std::vector<RemPackage> *out) {
+int get_installed_packages(std::vector<RemPackage> *out, std::string root) {
     std::error_code ec;
-    for (const auto &entry : std::filesystem::directory_iterator(PATHDIR_INSTALLED_PKGS, ec)) {
+    std::filesystem::path install_dir = root;
+    install_dir /= PATHDIR_INSTALLED_PKGS;
+
+    if (!std::filesystem::exists(install_dir, ec) || !std::filesystem::is_directory(install_dir, ec) || ec) {
+        return ERR_EXIT;
+    }
+
+    for (const auto &entry : std::filesystem::directory_iterator(install_dir, ec)) {
         if (ec) {
             return ERR_EXIT;
         }
@@ -161,7 +169,7 @@ int get_installed_packages(std::vector<RemPackage> *out) {
         if (entry.exists() && entry.is_directory()) {
             if (std::filesystem::exists(entry.path() / "package.metadata")) {
                 RemPackage package;
-                if (get_package_removaldata(entry.path().filename().string(), &package) != ERR_OK) {
+                if (get_package_removaldata(entry.path().filename().string(), root, &package) != ERR_OK) {
                     return ERR_EXIT;
                 }
 

@@ -38,35 +38,6 @@ size_t copy_file(FILE *src, FILE *dest, uint64_t total) {
     return total_read;
 }
 
-int mkdir_p(const char *dir, mode_t mode) {
-    char tmp[PATH_MAX] = "";
-    char *p = 0;
-    size_t len = 0;
-
-    snprintf(tmp, sizeof(tmp), "%s", dir);
-    len = strlen(tmp);
-
-    if (len > 0 && tmp[len - 1] == '/') {
-        tmp[len - 1] = '\0';
-    }
-    
-    for (p = tmp + 1; *p; p++) {
-        if (*p == '/') {
-            *p = '\0';
-            if (mkdir(tmp, mode) < 0 && errno != EEXIST) {
-                return ERR_EXIT;
-            }
-            *p = '/';
-        }
-    }
-
-    if (mkdir(tmp, mode) < 0 && errno != EEXIST) {
-        return ERR_EXIT;
-    }
-
-    return ERR_OK;
-}
-
 void clean_string(char *buffer) {
     int i = 0;
     while (buffer[i]) {

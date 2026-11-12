@@ -10,17 +10,28 @@
 #include "commands/remove/remove.h"
 #include "commands/remove/resolve.hpp"
 
-int remove_packages(int argc, char **argv, bool assume_yes) {
+int remove_packages(int argc, char **argv, bool assume_yes, bool force, const char *root) {
+    std::string target_root = root ? root : "/";
+    if (target_root.back() != '/') {
+        target_root.push_back('/');
+    }
+
     std::vector<RemPackage> packages;
     for (int i = 0; i < argc; i++) {
         RemPackage tmp;
-        if (get_package_removaldata(argv[i], &tmp) != ERR_OK) {
+        if (get_package_removaldata(argv[i], target_root, &tmp) != ERR_OK) {
             return ERR_EXIT;
         }
         packages.push_back(tmp);
     }
 
-    RemovePlan plan = rem_resolve(packages);
+    RemovePlan plan = {};
+    if (force) {
+        plan.error = false;
+        plan.packages = packages;
+    } else {
+        plan = rem_resolve(packages, target_root);
+    }
 
     if (plan.error) {
         ui.message("Could not resolve the removal plan.");
@@ -53,16 +64,17 @@ int remove_packages(int argc, char **argv, bool assume_yes) {
     }
 
     for (const auto &package : plan.packages) {
-        std::filesystem::path pkgdir = PATHDIR_INSTALLED_PKGS;
+        std::filesystem::path pkgdir = target_root;
+        pkgdir /= PATHDIR_INSTALLED_PKGS;
         pkgdir /= package.name;
 
-        if (perform_remove(pkgdir.c_str(), "package.files") != ERR_OK) {
+        if (perform_remove(pkgdir.c_str(), "package.files", target_root.c_str()) != ERR_OK) {
             ui.message("Failed to remove package: %s", package.name.c_str());
             return ERR_EXIT;
         }
 
         for (const auto &dependency : package.dependencies) {
-            if (remove_dependent_reference(dependency, package.name) != ERR_OK) {
+            if (remove_dependent_reference(dependency, package.name, target_root) != ERR_OK) {
                 return ERR_EXIT;
             }
         }
@@ -71,7 +83,7 @@ int remove_packages(int argc, char **argv, bool assume_yes) {
     return ERR_OK;
 }
 
-int perform_remove(const char *pkgdir, const char *target) {
+int perform_remove(const char *pkgdir, const char *target, const char *root) {
     std::filesystem::path package_dir(pkgdir);
     std::ifstream files(package_dir / target);
 
@@ -149,7 +161,7 @@ int perform_remove(const char *pkgdir, const char *target) {
         return a.size() > b.size();
     });
 
-    std::filesystem::path unowned_dir = std::filesystem::path(PATHDIR_INSTALLED_PKGS) / "unowned";
+    std::filesystem::path unowned_dir = std::filesystem::path(root) / PATHDIR_INSTALLED_PKGS / "unowned";
     std::error_code ec;
 
     std::filesystem::create_directories(unowned_dir, ec);

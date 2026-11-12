@@ -26,11 +26,12 @@ static RemPackage *find_package(std::vector<RemPackage> &packages, const std::st
     return nullptr;
 }
 
-RemovePlan rem_resolve(std::vector<RemPackage> requested) {
+RemovePlan rem_resolve(std::vector<RemPackage> requested, std::string root) {
     RemovePlan plan;
     std::vector<RemPackage> installed;
 
-    std::filesystem::path pkgdir = PATHDIR_INSTALLED_PKGS;
+    std::filesystem::path pkgdir = root;
+    pkgdir /= PATHDIR_INSTALLED_PKGS;
 
     std::error_code ec;
 
@@ -61,7 +62,7 @@ RemovePlan rem_resolve(std::vector<RemPackage> requested) {
 
         RemPackage package;
 
-        if (get_package_removaldata(entry.path().filename().string(), &package) != ERR_OK) {
+        if (get_package_removaldata(entry.path().filename().string(), root, &package) != ERR_OK) {
             plan.error = true;
             return plan;
         }

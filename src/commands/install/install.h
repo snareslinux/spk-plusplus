@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-int install_packages(int argc, char **argv, bool assume_yes);
+int install_packages(int argc, char **argv, bool assume_yes, const char *root);
 
 #ifdef __cplusplus
 }

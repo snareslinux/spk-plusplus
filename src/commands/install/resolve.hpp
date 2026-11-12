@@ -21,15 +21,15 @@ struct InsPackage {
 };
 
 int get_package_data(std::vector<RepoPackage> &available, std::string name, InsPackage *out, const Dependency *constraint = nullptr);
-int add_dependent_reference(std::string dependency, std::string dependent);
-int get_installed_packages(std::vector<RemPackage> *out);
+int add_dependent_reference(std::string dependency, std::string dependent, std::string root);
+int get_installed_packages(std::vector<RemPackage> *out, std::string root);
 
 struct InstallPlan {
     std::vector<InsPackage> packages;
     bool error = false;
 };
 
-InstallPlan ins_resolve(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool mark_explicit);
-int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool assume_yes, bool mark_explicit);
+InstallPlan ins_resolve(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool mark_explicit, std::string root);
+int apply_install(std::vector<InsPackage> &requested, std::vector<RepoPackage> &available, bool assume_yes, bool mark_explicit, std::string root);
 
 #endif

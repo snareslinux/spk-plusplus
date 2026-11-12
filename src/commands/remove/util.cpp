@@ -10,7 +10,7 @@
 #include "commands/remove/remove.h"
 #include "commands/remove/resolve.hpp"
 
-int get_package_removaldata(std::string name, RemPackage *out) {
+int get_package_removaldata(std::string name, std::string root, RemPackage *out) {
     if (
         name.empty() ||
         name.find_first_of("/") != std::string::npos ||
@@ -22,7 +22,8 @@ int get_package_removaldata(std::string name, RemPackage *out) {
 
     RemPackage newpkg;
 
-    std::filesystem::path pkgdir = PATHDIR_INSTALLED_PKGS;
+    std::filesystem::path pkgdir = root;
+    pkgdir /= PATHDIR_INSTALLED_PKGS;
     pkgdir /= name;
 
     if (
@@ -82,8 +83,9 @@ int get_package_removaldata(std::string name, RemPackage *out) {
     return ERR_OK;
 }
 
-int remove_dependent_reference(std::string dependency, std::string dependent) {
-    std::filesystem::path pkgdir = PATHDIR_INSTALLED_PKGS;
+int remove_dependent_reference(std::string dependency, std::string dependent, std::string root) {
+    std::filesystem::path pkgdir = root;
+    pkgdir /= PATHDIR_INSTALLED_PKGS;
     pkgdir /= dependency;
 
     std::filesystem::path metadata = pkgdir / "package.metadata";

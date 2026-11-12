@@ -7,8 +7,8 @@
 extern "C" {
 #endif
 
-int remove_packages(int argc, char **argv, bool assume_yes);
-int perform_remove(const char *pkgdir, const char *target);
+int remove_packages(int argc, char **argv, bool assume_yes, bool force, const char *root);
+int perform_remove(const char *pkgdir, const char *target, const char *root);
 
 #ifdef __cplusplus
 }

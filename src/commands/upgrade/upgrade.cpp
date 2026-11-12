@@ -13,7 +13,7 @@ int upgrade_packages(bool assume_yes) {
     }
 
     std::vector<RemPackage> installed;
-    if (get_installed_packages(&installed) != ERR_OK) {
+    if (get_installed_packages(&installed, "/") != ERR_OK) {
         return ERR_EXIT;
     }
 
@@ -41,5 +41,5 @@ int upgrade_packages(bool assume_yes) {
         return ERR_OK;
     }
 
-    return apply_install(upgrades, available, assume_yes, false);
+    return apply_install(upgrades, available, assume_yes, false, "/");
 }
